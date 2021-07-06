@@ -1,0 +1,28 @@
+name: catapush_flutter_sdk
+description: Catapush plugin for Flutter
+version: 1.0.0
+homepage: https://www.catapush.com/
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=2.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  mime: ^1.0.0
+  intl: ^0.17.0
+
+dev_dependencies:
+  flutter_lints: ^1.0.4
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.catapush.flutter.sdk
+        pluginClass: CatapushFlutterSdkPlugin
+      ios:
+        pluginClass: CatapushFlutterSdkPlugin

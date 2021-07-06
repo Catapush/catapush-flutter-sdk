@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Catapush Flutter SDK Example</string>
+    <string name="notifications_channel_name">Example Channel</string>
+</resources>

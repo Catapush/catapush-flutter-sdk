@@ -1,0 +1,441 @@
+# Setup Guide
+
+In order to start sending push notifications and interacting with your mobile app users, follow the instructions below:
+
+1. Create your account by [signing up](https://www.catapush.com/d/register) for Catapush services and register your app on our Private Panel
+2. Generate a [iOS Push Certificate](https://www.catapush.com/docs-ios) and a [FCM Push Notification Key](https://github.com/Catapush/catapush-docs/blob/master/AndroidSDK/DOCUMENTATION_PLATFORM_GMS_FCM.md) or a [HMS Push Notification Key](https://github.com/Catapush/catapush-docs/blob/master/AndroidSDK/DOCUMENTATION_PLATFORM_HMS_PUSHKIT.md)
+4. [Integrate Flutter SDK](#integrate_flutter_sdk)
+
+## Integrate Flutter SDK
+
+### Add Catapush flutter sdk dependency
+
+Run this command:
+With Flutter:
+```$ flutter pub add catapush_flutter_sdk```
+
+This will add a line like this to your package's pubspec.yaml (and run an implicit flutter pub get):
+```
+dependencies:
+  catapush_flutter_sdk: ^1.0.0
+```
+
+Now, in your Dart code, you can use:
+```import 'package:catapush_flutter_sdk/catapush_flutter_sdk.dart';```
+
+
+### [iOS] Add a Notification Service Extension
+In order to process the push notification a Notification Service Extension is required.
+Add a Notification Service Extension (in Xcode File -> New -> Target...) that extends ```CatapushNotificationServiceExtension```
+
+```swift
+import Foundation
+import UserNotifications
+import catapush_ios_sdk_pod
+
+extension UNNotificationAttachment {
+    static func create(identifier: String, image: UIImage, options: [NSObject : AnyObject]?) -> UNNotificationAttachment? {
+        let fileManager = FileManager.default
+        let tmpSubFolderName = ProcessInfo.processInfo.globallyUniqueString
+        let tmpSubFolderURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(tmpSubFolderName, isDirectory: true)
+        do {
+            try fileManager.createDirectory(at: tmpSubFolderURL, withIntermediateDirectories: true, attributes: nil)
+            let imageFileIdentifier = identifier+".png"
+            let fileURL = tmpSubFolderURL.appendingPathComponent(imageFileIdentifier)
+            let data = image.pngData()
+            try data!.write(to: fileURL)
+            let imageAttachment = try UNNotificationAttachment.init(identifier: imageFileIdentifier, url: fileURL, options: options)
+            return imageAttachment
+        } catch {
+        }
+        return nil
+    }
+}
+
+class NotificationService: CatapushNotificationServiceExtension {
+    
+    var receivedRequest: UNNotificationRequest?
+    
+    override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
+        self.receivedRequest = request;
+        super.didReceive(request, withContentHandler: contentHandler)
+    }
+
+    override func handleMessage(_ message: MessageIP?, withContentHandler contentHandler: ((UNNotificationContent?) -> Void)?, withBestAttempt bestAttemptContent: UNMutableNotificationContent?) {
+        if let contentHandler = contentHandler, let bestAttemptContent = bestAttemptContent {
+            if (message != nil) {
+                bestAttemptContent.body = message!.body;
+                if message!.hasMediaPreview(), let image = message!.imageMediaPreview() {
+                    let identifier = ProcessInfo.processInfo.globallyUniqueString
+                    if let attachment = UNNotificationAttachment.create(identifier: identifier, image: image, options: nil) {
+                        bestAttemptContent.attachments = [attachment]
+                    }
+                }
+            }else{
+                bestAttemptContent.body = NSLocalizedString("no_message", comment: "");
+            }
+            
+            let request = NSFetchRequest<NSFetchRequestResult>(entityName: "MessageIP")
+            request.predicate = NSPredicate(format: "status = %i", MESSAGEIP_STATUS.MessageIP_NOT_READ.rawValue)
+            request.includesSubentities = false
+            do {
+                let msgCount = try CatapushCoreData.managedObjectContext().count(for: request)
+                bestAttemptContent.badge = NSNumber(value: msgCount)
+            } catch _ {
+            }
+            
+            contentHandler(bestAttemptContent);
+        }
+    }
+
+    override func handleError(_ error: Error, withContentHandler contentHandler: ((UNNotificationContent?) -> Void)?, withBestAttempt bestAttemptContent: UNMutableNotificationContent?) {
+        if let contentHandler = contentHandler, let bestAttemptContent = bestAttemptContent{
+            let errorCode = (error as NSError).code
+            if (errorCode == CatapushCredentialsError) {
+                bestAttemptContent.body = "Please login to receive messages"
+            }
+            if (errorCode == CatapushNetworkError) {
+                bestAttemptContent.body = "Network problems"
+            }
+            if (errorCode == CatapushNoMessagesError) {
+                if let request = self.receivedRequest, let catapushID = request.content.userInfo["catapushID"] as? String {
+                    let predicate = NSPredicate(format: "messageId = %@", catapushID)
+                    if let matches = Catapush.messages(with: predicate), matches.count > 0 {
+                        let message = matches.first! as! MessageIP
+                        if message.status.intValue == MESSAGEIP_STATUS.MessageIP_READ.rawValue{
+                            bestAttemptContent.body = "Message already read: " + message.body;
+                        }else{
+                            bestAttemptContent.body = "Message already received: " + message.body;
+                        }
+                        if message.hasMediaPreview(), let image = message.imageMediaPreview() {
+                            let identifier = ProcessInfo.processInfo.globallyUniqueString
+                            if let attachment = UNNotificationAttachment.create(identifier: identifier, image: image, options: nil) {
+                                bestAttemptContent.attachments = [attachment]
+                            }
+                        }
+                    }else{
+                        bestAttemptContent.body = "Open the application to verify the connection"
+                    }
+                }else{
+                    bestAttemptContent.body = "Please open the app to read the message"
+                }
+            }
+            if (errorCode == CatapushFileProtectionError) {
+                bestAttemptContent.body = "Unlock the device at least once to receive the message"
+            }
+            if (errorCode == CatapushConflictErrorCode) {
+                bestAttemptContent.body = "Connected from another resource"
+            }
+            if (errorCode == CatapushAppIsActive) {
+                bestAttemptContent.body = "Please open the app to read the message"
+            }
+            contentHandler(bestAttemptContent);
+        }
+    }
+    
+}
+```
+
+### [iOS] App Groups
+Catapush need that the Notification Service Extension and the main application can share resources.
+In order to do that you have to create and enable a specific app group for both the application and the extension.
+The app and the extension must be in the same app group.
+<img src="https://github.com/Catapush/catapush-ios-sdk-pod/blob/master/images/appgroup_1.png">
+<img src="https://github.com/Catapush/catapush-ios-sdk-pod/blob/master/images/appgroup_2.png">
+
+You should also add this information in the App plist and the Extension plist (```group.example.group``` should match the one you used for example ```group.catapush.test``` in the screens):
+```objectivec
+    <key>Catapush</key>
+    <dict>
+        <key>AppGroup</key>
+        <string>group.example.group</string>
+    </dict>
+```
+
+### [Android] AndroidManifest.xml setup
+Set your Catapush app key declaring this meta-data inside the application node of your `AndroidManifest.xml`:
+```xml
+<meta-data
+    android:name="com.catapush.library.APP_KEY"
+    android:value="YOUR_APP_KEY" />
+```
+
+_YOUR_APP_KEY_ is the _AppKey_ of your Catapush App (go to your [Catapush App configuration dashboard](https://www.catapush.com/panel/dashboard), select your App by clicking "View Panel" and then click on App details section)
+
+Then you need to declare a custom Catapush broadcast receiver and a permission to secure its broadcasts.
+
+Add this permission definition in your `AndroidManifest.xml`:
+```xml
+<permission
+    android:name="${applicationId}.permission.CATAPUSH_MESSAGE"
+    android:protectionLevel="signature" />
+```
+
+Then, in the `<application>` block add this receiver:
+```xml
+<receiver
+    android:name=".MyReceiver"
+    android:permission="${applicationId}.permission.CATAPUSH_MESSAGE">
+    <intent-filter>
+        <action android:name="com.catapush.library.action.INVALID_LIBRARY" />
+        <action android:name="com.catapush.library.action.NETWORK_ERROR" />
+        <action android:name="com.catapush.library.action.PUSH_SERVICE_ERROR" />
+        <action android:name="com.catapush.library.action.CONNECTED" />
+        <action android:name="com.catapush.library.action.DISCONNECTED" />
+        <action android:name="com.catapush.library.action.CONNECTING" />
+        <action android:name="com.catapush.library.action.MESSAGE_RECEIVED" />
+        <action android:name="com.catapush.library.action.MESSAGE_OPENED" />
+        <action android:name="com.catapush.library.action.MESSAGE_OPENED_CONFIRMED" />
+        <action android:name="com.catapush.library.action.MESSAGE_SENT" />
+        <action android:name="com.catapush.library.action.MESSAGE_SENT_CONFIRMED" />
+        <category android:name="${applicationId}" />
+    </intent-filter>
+</receiver>
+```
+
+### [Android] Create the custom Catapush broadcasts receiver
+
+To communicate with Catapush, you can extend `CatapushReceiver` or `CatapushTwoWayReceiver` and implement the needed methods. You can copy/paste the following class:
+```java
+import android.content.Context;
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+
+import com.catapush.library.CatapushTwoWayReceiver;
+import com.catapush.library.exceptions.CatapushAuthenticationError;
+import com.catapush.library.exceptions.PushServicesException;
+import com.catapush.library.messages.CatapushMessage;
+
+public class MyReceiver extends CatapushTwoWayReceiver {
+
+    @Override
+    public void onConnecting(@NonNull Context context) {
+        Log.d("MyApp", "Connecting...");
+    }
+
+    @Override
+    public void onConnected(@NonNull Context context) {
+        Log.d("MyApp", "Connected");
+    }
+
+    @Override
+    public void onDisconnected(int errorCode, @NonNull Context context) {
+        Log.d("MyApp", "Disconnected: " + errorCode);
+    }
+
+    @Override
+    public void onMessageReceived(@NonNull CatapushMessage msg, @NonNull Context context) {
+        Log.d("MyApp", "Received message: " + msg.toString());
+    }
+
+    @Override
+    public void onMessageOpened(@NonNull CatapushMessage msg, @NonNull Context context) {
+        Log.d("MyApp", "Opened message: " + msg.toString());
+    }
+
+    @Override
+    public void onMessageOpenedConfirmed(@NonNull CatapushMessage message, @NonNull Context context) {
+        Log.d("MyApp", "Opened message confirmed: " + msg.toString());
+    }
+
+    @Override
+    public void onRegistrationFailed(@NonNull CatapushAuthenticationError error, @NonNull Context context) {
+        Log.e("MyApp", "Error message: " + error.getMessage());
+    }
+
+    @Override
+    public void onPushServicesError(@NonNull PushServicesException error, @NonNull Context context) {
+        Log.w("MyApp", "Push service error: " + error.getErrorMessage());
+    }
+
+    @Override
+    public void onMessageSent(@NonNull CatapushMessage message, @NonNull Context context) {
+        Log.d("MyApp", "Message marked as sent: " + message.toString());
+    }
+
+    @Override
+    public void onMessageSentConfirmed(@NonNull CatapushMessage message, @NonNull Context context) {
+        Log.d("MyApp", "Message sent and delivered: " + message.toString());
+    }
+
+}
+```
+
+### [Android] Application class customization
+
+You must initialize Catapush in your class that extends `Application`.
+
+You also have to provide your customized notification style template here.
+
+Your `Application.onCreate()` method should contain the following lines:
+
+```java
+public class MyApplication extends MultiDexApplication {
+
+    private static final String NOTIFICATION_CHANNEL_ID = "your.app.package.CHANNEL_ID";
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        // This is the Android system notification channel that will be used by the Catapush SDK
+        // to notify the incoming messages since Android 8.0. It is important that the channel
+        // is created before starting Catapush.
+        // See https://developer.android.com/training/notify-user/channels
+        NotificationManager nm = ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE));
+        if (nm != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            String channelName = getString(R.string.catapush_notification_channel_name);
+            NotificationChannel channel = nm.getNotificationChannel(NOTIFICATION_CHANNEL_ID);
+            if (channel == null) {
+                channel = new NotificationChannel(
+                        NOTIFICATION_CHANNEL_ID,
+                        channelName,
+                        NotificationManager.IMPORTANCE_HIGH);
+                // Customize your notification appearance here (Android >= 8.0)
+                // it's possible to customize a channel only on creation
+                channel.enableVibration(true);
+                channel.setVibrationPattern(new long[]{100, 200, 100, 300});
+                channel.enableLights(true);
+                channel.setLightColor(ContextCompat.getColor(this, R.color.primary));
+            } else if (!channelName.contentEquals(channel.getName())) {
+                // Update channel name, useful when the user changes the system language
+                channel.setName(channelName);
+            }
+            nm.createNotificationChannel(channel);
+        }
+
+        Catapush.getInstance()
+            .setNotificationIntent((catapushMessage, context) -> {
+                Log.d("MyApp", "Notification tapped: " + catapushMessage);
+                // This is the Activity you want to open when a notification is tapped:
+                Intent intent = new Intent(context, MainActivity.class);
+                // This is a unique URI set to the Intent to avoid its recycling for different
+                // Notifications when it's set as PendingIntent in the NotificationManager.
+                // There's no need to provide a valid scheme or path, it just need to be unique.
+                intent.setData(Uri.parse("catapush://message/" + catapushMessage.id()));
+                intent.putExtra("message", catapushMessage);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                // This PendingIntent will be set as "ContentIntent" in the local notification
+                // shown to the user in the Android notifications UI and launched on tap
+                return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+            })
+            .init(
+                this,
+                NOTIFICATION_CHANNEL_ID,
+                Collections.emptyList(), // Push notification services modules will be configured here, leave empty for now
+                new Callback() {
+                    @Override
+                    public void success(Boolean response) {
+                        Log.d("MyApp", "Catapush has been successfully initialized");
+
+                        // This is the notification template that the Catapush SDK uses to build
+                        // the status bar notification shown to the user.
+                        // Some settings like vibration, lights, etc. are duplicated here because
+                        // before Android introduced notification channels (Android < 8.0) the
+                        // styling was made on a per-notification basis.
+                        final NotificationTemplate template = NotificationTemplate.builder()
+                                .swipeToDismissEnabled(false)
+                                .title("Your notification title!")
+                                .iconId(R.drawable.ic_stat_notify_default)
+                                .vibrationEnabled(true)
+                                .vibrationPattern(new long[]{100, 200, 100, 300})
+                                .soundEnabled(true)
+                                .soundResourceUri(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM))
+                                .circleColor(ContextCompat.getColor(SampleApplication.this, R.color.primary))
+                                .ledEnabled(true)
+                                .ledColor(Color.BLUE)
+                                .ledOnMS(2000)
+                                .ledOffMS(1000)
+                                .build();
+
+                        Catapush.getInstance().setNotificationTemplate(template);
+                    }
+
+                    @Override
+                    public void failure(@NonNull Throwable t) {
+                        Log.d("MyApp", "Catapush initialization error: " + t.getMessage());
+                    }
+                }
+            );
+    }
+}
+```
+
+If you are defining a custom application class for your app for the first time, remember to add it to your `AndroidManifest.xml`:
+
+```xml
+<application
+    android:name=".MyApplication"
+    android:icon="@mipmap/ic_launcher"
+    android:label="@string/app_name"
+    android:theme="@style/AppTheme">
+```
+
+Please note that, to be used, the `MultiDexApplication` requires your app to depend on the `androidx.multidex:multidex` dependency.
+
+### [Android] Configure a push services provider
+
+If you want to be able to receive the messages while your app is not running in the foreground you have to integrate one of the supported services providers: Google Mobile Services or Huawei Mobile Services.
+
+- For GMS follow [this documentation section](https://github.com/Catapush/catapush-docs/blob/master/AndroidSDK/DOCUMENTATION_ANDROID_SDK.md#google-mobile-services-gms-module)
+
+- For HMS follow [this documentation section](https://github.com/Catapush/catapush-docs/blob/master/AndroidSDK/DOCUMENTATION_ANDROID_SDK.md#huawei-mobile-services-hms-module)
+
+### Initialize Catapush SDK
+You can now initialize Catapush using the following code in your main.dart file:
+
+```dart
+// To enable logging to the console
+Catapush.shared.enableLog(true);
+
+final init = await Catapush.shared.init(
+    ios: iOSSettings('YOUR_APP_KEY'),
+);
+```
+
+Register CatapushStateDelegate and CatapushMessageDelegate in order to recieve update regard the state of the connection and the state of the messages.
+
+```dart
+Catapush.shared.setCatapushMessageDelegate(_catapushMessageDelegate);
+Catapush.shared.setCatapushStateDelegate(_catapushStateDelegate);
+```
+
+```dart
+abstract class CatapushStateDelegate {
+  void catapushStateChanged(CatapushState state);
+  void catapushHandleError(CatapushError error);
+}
+```
+
+```dart
+abstract class CatapushMessageDelegate {
+  void catapushMessageReceived(CatapushMessage message);
+  void catapushMessageSent(CatapushMessage message);
+}
+```
+
+### Basic usage
+In order to start Catapush you have to set a user and call the start method.
+
+```dart
+Catapush.shared.setUser("identifier", "password");
+Catapush.shared.start();
+```
+
+To send a message:
+```dart
+await Catapush.shared.sendMessage(CatapushSendMessage(text: "example"))
+```
+
+To receive a message check the catapushMessageReceived method of your CatapushMessageDelegate.
+```dart
+@override
+void catapushMessageReceived(CatapushMessage message) {
+    debugPrint('RECEIVED ${message}');
+}
+```
+
+
+### Advanced usage
+In order to send attachment, send read receipt, and more see the demo project in the `/example` folder of this repository.

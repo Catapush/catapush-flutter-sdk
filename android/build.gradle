@@ -1,0 +1,22 @@
+group 'com.catapush.flutter.sdk'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    compileSdkVersion 30
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+    defaultConfig {
+        minSdkVersion 21
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    api "com.catapush.catapush-android-sdk:core:$catapush_version"
+    api "com.catapush.catapush-android-sdk:gms:$catapush_version"
+}
