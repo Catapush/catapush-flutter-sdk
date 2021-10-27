@@ -5,7 +5,7 @@ Catapush is a simple, reliable and scalable delivery API for transactional push 
 Get delivery confirmation with real time status for each message sent and build intelligent messaging logic in your applications
 
 #### Installation
-See the [Setup Guide](SETUP.md) for setup instructions.
+See the [Setup Guide](https://github.com/Catapush/catapush-flutter-sdk/blob/master/SETUP.md) for setup instructions.
 
 #### Demo Project
 The demo project is in the `/example` folder of this repository.
