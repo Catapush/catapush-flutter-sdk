@@ -162,7 +162,7 @@ Set your Catapush app key declaring this meta-data inside the application node o
 
 _YOUR_APP_KEY_ is the _AppKey_ of your Catapush App (go to your [Catapush App configuration dashboard](https://www.catapush.com/panel/dashboard), select your App by clicking "View Panel" and then click on App details section)
 
-Then you need to declare a custom Catapush broadcast receiver and a permission to secure its broadcasts.
+Then you need to declare the Catapush broadcast receiver and a permission to secure its broadcasts.
 
 Add this permission definition in your `AndroidManifest.xml`:
 ```xml
@@ -174,7 +174,7 @@ Add this permission definition in your `AndroidManifest.xml`:
 Then, in the `<application>` block add this receiver:
 ```xml
 <receiver
-    android:name=".MyReceiver"
+    android:name="com.catapush.flutter.sdk.CatapushFlutterReceiver"
     android:permission="${applicationId}.permission.CATAPUSH_MESSAGE">
     <intent-filter>
         <action android:name="com.catapush.library.action.INVALID_LIBRARY" />
@@ -191,75 +191,6 @@ Then, in the `<application>` block add this receiver:
         <category android:name="${applicationId}" />
     </intent-filter>
 </receiver>
-```
-
-### [Android] Create the custom Catapush broadcasts receiver
-
-To communicate with Catapush, you can extend `CatapushReceiver` or `CatapushTwoWayReceiver` and implement the needed methods. You can copy/paste the following class:
-```java
-import android.content.Context;
-import android.util.Log;
-
-import androidx.annotation.NonNull;
-
-import com.catapush.library.CatapushTwoWayReceiver;
-import com.catapush.library.exceptions.CatapushAuthenticationError;
-import com.catapush.library.exceptions.PushServicesException;
-import com.catapush.library.messages.CatapushMessage;
-
-public class MyReceiver extends CatapushTwoWayReceiver {
-
-    @Override
-    public void onConnecting(@NonNull Context context) {
-        Log.d("MyApp", "Connecting...");
-    }
-
-    @Override
-    public void onConnected(@NonNull Context context) {
-        Log.d("MyApp", "Connected");
-    }
-
-    @Override
-    public void onDisconnected(int errorCode, @NonNull Context context) {
-        Log.d("MyApp", "Disconnected: " + errorCode);
-    }
-
-    @Override
-    public void onMessageReceived(@NonNull CatapushMessage msg, @NonNull Context context) {
-        Log.d("MyApp", "Received message: " + msg.toString());
-    }
-
-    @Override
-    public void onMessageOpened(@NonNull CatapushMessage msg, @NonNull Context context) {
-        Log.d("MyApp", "Opened message: " + msg.toString());
-    }
-
-    @Override
-    public void onMessageOpenedConfirmed(@NonNull CatapushMessage message, @NonNull Context context) {
-        Log.d("MyApp", "Opened message confirmed: " + msg.toString());
-    }
-
-    @Override
-    public void onRegistrationFailed(@NonNull CatapushAuthenticationError error, @NonNull Context context) {
-        Log.e("MyApp", "Error message: " + error.getMessage());
-    }
-
-    @Override
-    public void onPushServicesError(@NonNull PushServicesException error, @NonNull Context context) {
-        Log.w("MyApp", "Push service error: " + error.getErrorMessage());
-    }
-
-    @Override
-    public void onMessageSent(@NonNull CatapushMessage message, @NonNull Context context) {
-        Log.d("MyApp", "Message marked as sent: " + message.toString());
-    }
-
-    @Override
-    public void onMessageSentConfirmed(@NonNull CatapushMessage message, @NonNull Context context) {
-        Log.d("MyApp", "Message sent and delivered: " + message.toString());
-    }
-
-}
 ```
 
 ### [Android] Application class customization
