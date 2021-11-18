@@ -15,6 +15,12 @@ android {
     }
 }
 
+repositories {
+    google()
+    mavenCentral()
+    maven { url "https://www.jitpack.io" }
+}
+
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     api "com.catapush.catapush-android-sdk:core:$catapush_version"
