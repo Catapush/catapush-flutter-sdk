@@ -21,23 +21,15 @@ class AuthenticationBloc
     _authenticationStatusSubscription = _authenticationRepository.status.listen(
           (status) => add(AuthenticationStatusChanged(status)),
     );
+
+    on<AuthenticationStatusChanged>((event, emit) async => emit(await _mapAuthenticationStatusChangedToState(event)));
+    on<AuthenticationLogoutRequested>((event, emit) => _authenticationRepository.logOut());
   }
 
   final AuthenticationRepository _authenticationRepository;
   final UserRepository _userRepository;
   late StreamSubscription<AuthenticationStatus>
   _authenticationStatusSubscription;
-
-  @override
-  Stream<AuthenticationState> mapEventToState(
-      AuthenticationEvent event,
-      ) async* {
-    if (event is AuthenticationStatusChanged) {
-      yield await _mapAuthenticationStatusChangedToState(event);
-    } else if (event is AuthenticationLogoutRequested) {
-      _authenticationRepository.logOut();
-    }
-  }
 
   @override
   Future<void> close() {

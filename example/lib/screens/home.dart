@@ -62,7 +62,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             icon: const Icon(Icons.logout),
             tooltip: 'Logout',
             onPressed: () async {
-              await Catapush.shared.logout();
+              await Catapush.shared.logout().onError((error, stackTrace) => true);
               context.read<AuthenticationBloc>().add(AuthenticationLogoutRequested());
             },
           )
