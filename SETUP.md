@@ -216,25 +216,38 @@ public class MyApplication extends MultiDexApplication {
         // See https://developer.android.com/training/notify-user/channels
         NotificationManager nm = ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE));
         if (nm != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            String channelName = getString(R.string.catapush_notification_channel_name);
-            NotificationChannel channel = nm.getNotificationChannel(NOTIFICATION_CHANNEL_ID);
-            if (channel == null) {
-                channel = new NotificationChannel(
-                        NOTIFICATION_CHANNEL_ID,
-                        channelName,
-                        NotificationManager.IMPORTANCE_HIGH);
-                // Customize your notification appearance here (Android >= 8.0)
-                // it's possible to customize a channel only on creation
-                channel.enableVibration(true);
-                channel.setVibrationPattern(new long[]{100, 200, 100, 300});
-                channel.enableLights(true);
-                channel.setLightColor(ContextCompat.getColor(this, R.color.primary));
-            } else if (!channelName.contentEquals(channel.getName())) {
-                // Update channel name, useful when the user changes the system language
-                channel.setName(channelName);
-            }
+            NotificationChannel channel = new NotificationChannel(
+                    NOTIFICATION_CHANNEL_ID,
+                    getString(R.string.catapush_notification_channel_name),
+                    NotificationManager.IMPORTANCE_HIGH);
+            // Customize your notification appearance here (Android >= 8.0)
+            // it's possible to customize a channel only on creation
+            channel.enableVibration(true);
+            channel.setVibrationPattern(new long[]{100, 200, 100, 300});
+            channel.enableLights(true);
+            channel.setLightColor(ContextCompat.getColor(this, R.color.primary));
             nm.createNotificationChannel(channel);
         }
+
+        // This is the notification template that the Catapush SDK uses to build
+        // the status bar notification shown to the user.
+        // Some settings like vibration, lights, etc. are duplicated here because
+        // before Android introduced notification channels (Android < 8.0) the
+        // styling was made on a per-notification basis.
+        NotificationTemplate template = new NotificationTemplate.Builder(NOTIFICATION_CHANNEL_ID)
+                .swipeToDismissEnabled(false)
+                .title("Your notification title!")
+                .iconId(R.drawable.ic_stat_notify_default)
+                .vibrationEnabled(true)
+                .vibrationPattern(new long[]{100, 200, 100, 300})
+                .soundEnabled(true)
+                .soundResourceUri(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM))
+                .circleColor(ContextCompat.getColor(SampleApplication.this, R.color.primary))
+                .ledEnabled(true)
+                .ledColor(Color.BLUE)
+                .ledOnMS(2000)
+                .ledOffMS(1000)
+                .build();
 
         Catapush.getInstance()
             .setNotificationIntent((catapushMessage, context) -> {
@@ -253,34 +266,13 @@ public class MyApplication extends MultiDexApplication {
             })
             .init(
                 this,
-                NOTIFICATION_CHANNEL_ID,
                 Collections.emptyList(), // Push notification services modules will be configured here, leave empty for now
+                template, // The main/default notification channel template
+                null, // You can pass more templates here if you want to support multiple notification channels
                 new Callback() {
                     @Override
                     public void success(Boolean response) {
                         Log.d("MyApp", "Catapush has been successfully initialized");
-
-                        // This is the notification template that the Catapush SDK uses to build
-                        // the status bar notification shown to the user.
-                        // Some settings like vibration, lights, etc. are duplicated here because
-                        // before Android introduced notification channels (Android < 8.0) the
-                        // styling was made on a per-notification basis.
-                        final NotificationTemplate template = NotificationTemplate.builder()
-                                .swipeToDismissEnabled(false)
-                                .title("Your notification title!")
-                                .iconId(R.drawable.ic_stat_notify_default)
-                                .vibrationEnabled(true)
-                                .vibrationPattern(new long[]{100, 200, 100, 300})
-                                .soundEnabled(true)
-                                .soundResourceUri(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM))
-                                .circleColor(ContextCompat.getColor(SampleApplication.this, R.color.primary))
-                                .ledEnabled(true)
-                                .ledColor(Color.BLUE)
-                                .ledOnMS(2000)
-                                .ledOffMS(1000)
-                                .build();
-
-                        Catapush.getInstance().setNotificationTemplate(template);
                     }
 
                     @Override
@@ -313,8 +305,16 @@ If you want to be able to receive the messages while your app is not running in 
 
 - For HMS follow [this documentation section](https://github.com/Catapush/catapush-docs/blob/master/AndroidSDK/DOCUMENTATION_ANDROID_SDK.md#huawei-mobile-services-hms-module)
 
+### [Android] Multiple notification channels
+
+If you want to deliver a message to a specific notification channel you just need to set the `channel` attribute of the Catapush message you are sending to the same ID of the Android notification channel that you have previuosly created in your app.
+
+Then, when you initialize the Catapush Android SDK in your `Application.onCreate(…)` method, pass the main/default `NotificationTemplate` as 3rd argument of the `Catapush.init(…)` method and as 4th argument a `Collection<NotificationTemplate>` containing all the other templates, one for each additional notification channel that you want to use with Catapush.
+
+When a message with the `channel` attribute is received it gets published to the corresponding notification channel if a `NotificationTemplate` with a matchin ID is found, otherwise it will be published using the main/default `NotificationTemplate`.
+
 ### Initialize Catapush SDK
-You can now initialize Catapush using the following code in your main.dart file:
+You can now initialize the Catapush using the following code in your `main.dart` file:
 
 ```dart
 // To enable logging to the console
@@ -325,7 +325,7 @@ final init = await Catapush.shared.init(
 );
 ```
 
-Register CatapushStateDelegate and CatapushMessageDelegate in order to recieve update regard the state of the connection and the state of the messages.
+Register `CatapushStateDelegate` and `CatapushMessageDelegate` in order to recieve update regard the state of the connection and the state of the messages.
 
 ```dart
 Catapush.shared.setCatapushMessageDelegate(_catapushMessageDelegate);
@@ -359,7 +359,7 @@ To send a message:
 await Catapush.shared.sendMessage(CatapushSendMessage(text: "example"))
 ```
 
-To receive a message check the catapushMessageReceived method of your CatapushMessageDelegate.
+To receive a message check the `catapushMessageReceived` method of your `CatapushMessageDelegate`.
 ```dart
 @override
 void catapushMessageReceived(CatapushMessage message) {
@@ -369,4 +369,4 @@ void catapushMessageReceived(CatapushMessage message) {
 
 
 ### Advanced usage
-In order to send attachment, send read receipt, and more see the demo project in the `/example` folder of this repository.
+In order to send an attachment, send a read receipt, and more see the demo project in the `/example` folder of this repository.
