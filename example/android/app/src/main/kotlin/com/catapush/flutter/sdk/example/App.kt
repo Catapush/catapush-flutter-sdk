@@ -38,36 +38,45 @@ class App : FlutterApplication() {
         val notificationColor = ContextCompat.getColor(this, R.color.colorPrimary)
         val notificationSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 
-        val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager?
-        if (nm != null) {
-            val channelName = getString(R.string.notifications_channel_name)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                var channel = nm.getNotificationChannel(NOTIFICATION_CHANNEL_ID)
-                val shouldCreateOrUpdate =
-                    channel == null || !channelName.contentEquals(channel.name)
-                if (shouldCreateOrUpdate) {
-                    if (channel == null) {
-                        channel = NotificationChannel(
-                            NOTIFICATION_CHANNEL_ID,
-                            channelName,
-                            NotificationManager.IMPORTANCE_HIGH
-                        )
-                        channel.enableVibration(true)
-                        channel.vibrationPattern = longArrayOf(100, 200, 100, 300)
-                        channel.enableLights(true)
-                        channel.lightColor = notificationColor
-                        if (notificationSound != null) {
-                            val audioAttributes = AudioAttributes.Builder()
-                                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                                .setUsage(AudioAttributes.USAGE_NOTIFICATION_COMMUNICATION_INSTANT)
-                                .build()
-                            channel.setSound(notificationSound, audioAttributes)
-                        }
-                    }
-                    nm.createNotificationChannel(channel)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager?
+            if (nm != null) {
+                val channel = NotificationChannel(
+                    NOTIFICATION_CHANNEL_ID,
+                    getString(R.string.notifications_channel_name),
+                    NotificationManager.IMPORTANCE_HIGH
+                )
+                channel.enableVibration(true)
+                channel.vibrationPattern = longArrayOf(100, 200, 100, 300)
+                channel.enableLights(true)
+                channel.lightColor = notificationColor
+                if (notificationSound != null) {
+                    val audioAttributes = AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_NOTIFICATION_COMMUNICATION_INSTANT)
+                        .build()
+                    channel.setSound(notificationSound, audioAttributes)
                 }
+                nm.createNotificationChannel(channel)
             }
         }
+
+        val template = NotificationTemplate.Builder(NOTIFICATION_CHANNEL_ID)
+            .swipeToDismissEnabled(true)
+            .title(getString(R.string.app_name))
+            .vibrationEnabled(true)
+            .vibrationPattern(longArrayOf(100, 200, 100, 300))
+            .soundEnabled(true)
+            .soundResourceUri(notificationSound)
+            .circleColor(notificationColor)
+            .modalNotificationThemeId(this, R.style.DialogTheme)
+            .iconId(R.drawable.ic_stat_notify)
+            .useAttachmentPreviewAsLargeIcon(true)
+            .modalIconId(R.mipmap.ic_launcher)
+            .ledEnabled(true)
+            .ledColor(notificationColor)
+            .ledOnMS(2000)
+            .ledOffMS(1000)
+            .build()
 
         Catapush.getInstance()
             .setNotificationIntent(object : IIntentProvider {
@@ -101,29 +110,13 @@ class App : FlutterApplication() {
                     }
                 }
             })
-            .init(this, NOTIFICATION_CHANNEL_ID,
+            .init(this,
                 listOf(CatapushGms),
+                template,
+                null,
                 object : Callback<Boolean> {
                     override fun success(response: Boolean) {
                         Log.d(LOG_TAG, "Catapush has been successfully initialized")
-                        val template = NotificationTemplate.builder()
-                            .swipeToDismissEnabled(true)
-                            .title(this@App.getString(R.string.app_name))
-                            .vibrationEnabled(true)
-                            .vibrationPattern(longArrayOf(100, 200, 100, 300))
-                            .soundEnabled(true)
-                            .soundResourceUri(notificationSound)
-                            .circleColor(notificationColor)
-                            .modalNotificationThemeId(this@App, R.style.DialogTheme)
-                            .iconId(R.drawable.ic_stat_notify)
-                            .useAttachmentPreviewAsLargeIcon(true)
-                            .modalIconId(R.mipmap.ic_launcher)
-                            .ledEnabled(true)
-                            .ledColor(notificationColor)
-                            .ledOnMS(2000)
-                            .ledOffMS(1000)
-                            .build()
-                        Catapush.getInstance().setNotificationTemplate(template)
                     }
 
                     override fun failure(irrecoverableError: Throwable) {

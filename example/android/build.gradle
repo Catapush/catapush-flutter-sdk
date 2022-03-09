@@ -1,6 +1,6 @@
 buildscript {
     ext.kotlin_version = '1.5.31'
-    ext.catapush_version = '11.1.3'
+    ext.catapush_version = '11.2.0'
 
     repositories {
         google()
