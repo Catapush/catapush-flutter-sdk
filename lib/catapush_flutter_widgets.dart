@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:catapush_flutter_sdk/catapush_flutter_sdk.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 

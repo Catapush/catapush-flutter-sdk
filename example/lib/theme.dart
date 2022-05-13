@@ -51,21 +51,17 @@ final accent = MaterialColor(
 
 final lightColorScheme = ColorScheme.light(
   primary: primary,
-  primaryVariant: primaryDark,
   secondary: accent.shade500,
-  secondaryVariant: accent.shade800,
   onSecondary: Colors.white,
 );
 final darkColorScheme = ColorScheme.dark(
   primary: primary,
-  primaryVariant: primaryDark,
   secondary: accent.shade500,
-  secondaryVariant: accent.shade800,
   onSecondary: Colors.white,
 );
 
-final lightTextTheme = Typography.blackMountainView;
-final darkTextTheme = Typography.whiteMountainView;
+const lightTextTheme = Typography.blackMountainView;
+const darkTextTheme = Typography.whiteMountainView;
 
 final lightThemeData = ThemeData.from(
   colorScheme: lightColorScheme,

@@ -6,7 +6,6 @@ import 'package:catapush_flutter_sdk_example/blocs/catapushMessages/catapush_mes
 import 'package:catapush_flutter_sdk_example/blocs/catapushState/catapush_state_bloc.dart';
 import 'package:catapush_flutter_sdk_example/theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
@@ -34,7 +33,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     Catapush.shared.pauseNotifications();
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
@@ -91,7 +90,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             Expanded(
               child: BlocBuilder<CatapushMessagesBloc, CatapushMessagesState>(
                 builder: (context, state) => Scrollbar(
-                  isAlwaysShown: true,
+                  thumbVisibility: true,
                   child: ListView.builder(
                     reverse: true,
                     physics: const BouncingScrollPhysics(),
@@ -195,7 +194,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     Catapush.shared.resumeNotifications();
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     _messageController.dispose();
     super.dispose();
   }
