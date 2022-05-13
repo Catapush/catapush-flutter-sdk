@@ -94,6 +94,10 @@ public class SwiftCatapushFlutterSdkPlugin: NSObject, FlutterPlugin {
                 result(["result": true])
             }
         }
+        if "Catapush#stop" == call.method {
+            Catapush.stop()
+            result(["result": true])
+        }
         if "Catapush#sendMessage" == call.method {
             if let args = call.arguments as? Dictionary<String, Any>, let ios = args["message"] as? Dictionary<String, Any> {
                 let text = ios["text"] as? String

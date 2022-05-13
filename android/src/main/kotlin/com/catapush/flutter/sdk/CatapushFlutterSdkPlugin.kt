@@ -81,6 +81,16 @@ class CatapushFlutterSdkPlugin: FlutterPlugin, MethodChannel.MethodCallHandler, 
         }
       })
 
+    } else if (call.method == "Catapush#stop") {
+      Catapush.getInstance().stop(object : Callback<Boolean> {
+        override fun success(response: Boolean) {
+          result.success(mapOf("result" to true))
+        }
+        override fun failure(irrecoverableError: Throwable) {
+          result.error("op failed", "${call.method} ${irrecoverableError.localizedMessage}", null)
+        }
+      })
+
     } else if (call.method == "Catapush#sendMessage") {
       val message = call.argument("message") as Map<String, Any>?
       val text = message?.get("text") as String?

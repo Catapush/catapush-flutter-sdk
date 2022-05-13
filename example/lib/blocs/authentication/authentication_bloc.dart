@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:catapush_flutter_sdk/catapush_flutter_sdk.dart';
 import 'package:catapush_flutter_sdk_example/models/user.dart';
 import 'package:catapush_flutter_sdk_example/repositories/authentication_repository.dart';
 import 'package:catapush_flutter_sdk_example/repositories/user_repository.dart';
@@ -23,7 +24,10 @@ class AuthenticationBloc
     );
 
     on<AuthenticationStatusChanged>((event, emit) async => emit(await _mapAuthenticationStatusChangedToState(event)));
-    on<AuthenticationLogoutRequested>((event, emit) => _authenticationRepository.logOut());
+    on<AuthenticationLogoutRequested>((event, emit) {
+      Catapush.shared.stop();
+      _authenticationRepository.logOut();
+    });
   }
 
   final AuthenticationRepository _authenticationRepository;

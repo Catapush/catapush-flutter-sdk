@@ -50,6 +50,13 @@ class Catapush {
     });
   }
 
+  Future<bool> stop() {
+    return _channel.invokeMethod<Map<Object?, Object?>>('Catapush#stop')
+        .then((response) {
+      return response!['result']! as bool;
+    });
+  }
+
   Future<bool> sendMessage(CatapushSendMessage message) {
     return _channel.invokeMethod<Map<Object?, Object?>>('Catapush#sendMessage', {
       'message': message.mapRepresentation(),
