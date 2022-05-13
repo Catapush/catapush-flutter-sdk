@@ -26,8 +26,9 @@ class CatapushFlutterSdkPlugin: FlutterPlugin, MethodChannel.MethodCallHandler, 
   private lateinit var channel : MethodChannel
 
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-    CatapushFlutterReceiver.setMessagesDispatcher(this)
-    CatapushFlutterReceiver.setStatusDispatcher(this)
+    CatapushFlutterEventDelegate.setContext(flutterPluginBinding.applicationContext)
+    CatapushFlutterEventDelegate.setMessagesDispatcher(this)
+    CatapushFlutterEventDelegate.setStatusDispatcher(this)
     appContext = flutterPluginBinding.applicationContext
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "Catapush")
     channel.setMethodCallHandler(this)
@@ -51,7 +52,7 @@ class CatapushFlutterSdkPlugin: FlutterPlugin, MethodChannel.MethodCallHandler, 
   @SuppressLint("RestrictedApi")
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: MethodChannel.Result) {
     if (call.method == "Catapush#init") {
-      if (Catapush.getInstance().isInitialized.blockingFirst(false)) {
+      if ((Catapush.getInstance() as Catapush).isInitialized.blockingFirst(false)) {
         result.success(mapOf("result" to true))
       } else {
         result.error("bad state", "${call.method} please invoke Catapush.getInstance().init(...) in the Application.onCreate(...) callback of your Android native app", null)
@@ -74,6 +75,16 @@ class CatapushFlutterSdkPlugin: FlutterPlugin, MethodChannel.MethodCallHandler, 
         }
         override fun warning(recoverableError: Throwable) {
           Log.w("CatapushFlutterSdkPlugin", "Recoverable error", recoverableError)
+        }
+        override fun failure(irrecoverableError: Throwable) {
+          result.error("op failed", "${call.method} ${irrecoverableError.localizedMessage}", null)
+        }
+      })
+
+    } else if (call.method == "Catapush#stop") {
+      Catapush.getInstance().stop(object : Callback<Boolean> {
+        override fun success(response: Boolean) {
+          result.success(mapOf("result" to true))
         }
         override fun failure(irrecoverableError: Throwable) {
           result.error("op failed", "${call.method} ${irrecoverableError.localizedMessage}", null)
@@ -218,19 +229,27 @@ class CatapushFlutterSdkPlugin: FlutterPlugin, MethodChannel.MethodCallHandler, 
   }
 
   override fun dispatchMessageReceived(message: CatapushMessage) {
-    channel.invokeMethod("Catapush#catapushMessageReceived", mapOf("message" to message.toMap()))
+    activity?.runOnUiThread {
+      channel.invokeMethod("Catapush#catapushMessageReceived", mapOf("message" to message.toMap()))
+    }
   }
 
   override fun dispatchMessageSent(message: CatapushMessage) {
-    channel.invokeMethod("Catapush#catapushMessageSent", mapOf("message" to message.toMap()))
+    activity?.runOnUiThread {
+      channel.invokeMethod("Catapush#catapushMessageSent", mapOf("message" to message.toMap()))
+    }
   }
 
   override fun dispatchConnectionStatus(status: String) {
-    channel.invokeMethod("Catapush#catapushStateChanged", mapOf("status" to status))
+    activity?.runOnUiThread {
+      channel.invokeMethod("Catapush#catapushStateChanged", mapOf("status" to status))
+    }
   }
 
   override fun dispatchError(event: String, code: Int) {
-    channel.invokeMethod("Catapush#catapushHandleError", mapOf("event" to event, "code" to code))
+    activity?.runOnUiThread {
+      channel.invokeMethod("Catapush#catapushHandleError", mapOf("event" to event, "code" to code))
+    }
   }
 
   private fun List<CatapushMessage>.toMap() : List<Map<String, Any?>> {

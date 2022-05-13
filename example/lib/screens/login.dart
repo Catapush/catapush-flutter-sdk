@@ -1,6 +1,5 @@
 import 'package:catapush_flutter_sdk_example/repositories/authentication_repository.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class LoginScreen extends StatefulWidget{
@@ -40,6 +39,7 @@ class LoginScreenState extends State<LoginScreen> {
                   if (value != null && value.trim().isEmpty) {
                     return 'Identifier is required';
                   }
+                  return null;
                 },
               ),
               const SizedBox(height: 16,),
@@ -53,6 +53,7 @@ class LoginScreenState extends State<LoginScreen> {
                   if (value != null && value.trim().isEmpty) {
                     return 'Password is required';
                   }
+                  return null;
                 },
               ),
               const SizedBox(height: 16,),

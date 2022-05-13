@@ -164,35 +164,6 @@ _YOUR_APP_KEY_ is the _AppKey_ of your Catapush App (go to your [Catapush App co
 
 Then you need to declare the Catapush broadcast receiver and a permission to secure its broadcasts.
 
-Add this permission definition in your `AndroidManifest.xml`:
-```xml
-<permission
-    android:name="${applicationId}.permission.CATAPUSH_MESSAGE"
-    android:protectionLevel="signature" />
-```
-
-Then, in the `<application>` block add this receiver:
-```xml
-<receiver
-    android:name="com.catapush.flutter.sdk.CatapushFlutterReceiver"
-    android:permission="${applicationId}.permission.CATAPUSH_MESSAGE">
-    <intent-filter>
-        <action android:name="com.catapush.library.action.INVALID_LIBRARY" />
-        <action android:name="com.catapush.library.action.NETWORK_ERROR" />
-        <action android:name="com.catapush.library.action.PUSH_SERVICE_ERROR" />
-        <action android:name="com.catapush.library.action.CONNECTED" />
-        <action android:name="com.catapush.library.action.DISCONNECTED" />
-        <action android:name="com.catapush.library.action.CONNECTING" />
-        <action android:name="com.catapush.library.action.MESSAGE_RECEIVED" />
-        <action android:name="com.catapush.library.action.MESSAGE_OPENED" />
-        <action android:name="com.catapush.library.action.MESSAGE_OPENED_CONFIRMED" />
-        <action android:name="com.catapush.library.action.MESSAGE_SENT" />
-        <action android:name="com.catapush.library.action.MESSAGE_SENT_CONFIRMED" />
-        <category android:name="${applicationId}" />
-    </intent-filter>
-</receiver>
-```
-
 ### [Android] Application class customization
 
 You must initialize Catapush in your class that extends `Application`.
@@ -204,50 +175,54 @@ Your `Application.onCreate()` method should contain the following lines:
 ```java
 public class MyApplication extends MultiDexApplication {
 
-    private static final String NOTIFICATION_CHANNEL_ID = "your.app.package.CHANNEL_ID";
-
     @Override
     public void onCreate() {
         super.onCreate();
 
+        // This is the notification template that the Catapush SDK uses to build
+        // the status bar notification shown to the user.
+        // Customize this template to fit your needs.
+        NotificationTemplate notificationTemplate = new NotificationTemplate.Builder("your.app.package.CHANNEL_ID")
+            .swipeToDismissEnabled(true)
+            .vibrationEnabled(true)
+            .vibrationPattern(new long[]{100, 200, 100, 300})
+            .soundEnabled(true)
+            .soundResourceUri(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+            .circleColor(Color.BLUE)
+            .iconId(R.drawable.ic_stat_notify_default)
+            .useAttachmentPreviewAsLargeIcon(true)
+            .modalIconId(R.mipmap.ic_launcher)
+            .ledEnabled(true)
+            .ledColor(Color.BLUE)
+            .ledOnMS(2000)
+            .ledOffMS(1000)
+            .build();
+
         // This is the Android system notification channel that will be used by the Catapush SDK
         // to notify the incoming messages since Android 8.0. It is important that the channel
         // is created before starting Catapush.
+        // Customize this channel to fit your needs.
         // See https://developer.android.com/training/notify-user/channels
         NotificationManager nm = ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE));
         if (nm != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    NOTIFICATION_CHANNEL_ID,
-                    getString(R.string.catapush_notification_channel_name),
-                    NotificationManager.IMPORTANCE_HIGH);
-            // Customize your notification appearance here (Android >= 8.0)
-            // it's possible to customize a channel only on creation
-            channel.enableVibration(true);
-            channel.setVibrationPattern(new long[]{100, 200, 100, 300});
-            channel.enableLights(true);
-            channel.setLightColor(ContextCompat.getColor(this, R.color.primary));
+            String channelName = "Catapush messages";
+            NotificationChannel channel = nm.getNotificationChannel(notificationTemplate.getNotificationChannelId());
+            if (channel == null) {
+                channel = new NotificationChannel(notificationTemplate.getNotificationChannelId(), channelName, NotificationManager.IMPORTANCE_HIGH);
+                channel.enableVibration(notificationTemplate.isVibrationEnabled());
+                channel.setVibrationPattern(notificationTemplate.getVibrationPattern());
+                channel.enableLights(notificationTemplate.isLedEnabled());
+                channel.setLightColor(notificationTemplate.getLedColor());
+                if (notificationTemplate.isSoundEnabled()) {
+                AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION_COMMUNICATION_INSTANT)
+                    .build();
+                channel.setSound(notificationTemplate.getSoundResourceUri(), audioAttributes);
+                }
+            }
             nm.createNotificationChannel(channel);
         }
-
-        // This is the notification template that the Catapush SDK uses to build
-        // the status bar notification shown to the user.
-        // Some settings like vibration, lights, etc. are duplicated here because
-        // before Android introduced notification channels (Android < 8.0) the
-        // styling was made on a per-notification basis.
-        NotificationTemplate template = new NotificationTemplate.Builder(NOTIFICATION_CHANNEL_ID)
-                .swipeToDismissEnabled(false)
-                .title("Your notification title!")
-                .iconId(R.drawable.ic_stat_notify_default)
-                .vibrationEnabled(true)
-                .vibrationPattern(new long[]{100, 200, 100, 300})
-                .soundEnabled(true)
-                .soundResourceUri(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM))
-                .circleColor(ContextCompat.getColor(SampleApplication.this, R.color.primary))
-                .ledEnabled(true)
-                .ledColor(Color.BLUE)
-                .ledOnMS(2000)
-                .ledOffMS(1000)
-                .build();
 
         Catapush.getInstance()
             .setNotificationIntent((catapushMessage, context) -> {
@@ -266,10 +241,11 @@ public class MyApplication extends MultiDexApplication {
             })
             .init(
                 this,
-                Collections.emptyList(), // Push notification services modules will be configured here, leave empty for now
-                template, // The main/default notification channel template
-                null, // You can pass more templates here if you want to support multiple notification channels
-                new Callback() {
+                CatapushFlutterEventDelegate.INSTANCE, // Required, the Flutter plugin won't work if you don't set this depegate instance
+                Collections.singletonList(CatapushGms.INSTANCE),
+                notificationTemplate,
+                null,
+                new Callback<Boolean>() {
                     @Override
                     public void success(Boolean response) {
                         Log.d("MyApp", "Catapush has been successfully initialized");
@@ -277,10 +253,9 @@ public class MyApplication extends MultiDexApplication {
 
                     @Override
                     public void failure(@NonNull Throwable t) {
-                        Log.d("MyApp", "Catapush initialization error: " + t.getMessage());
+                        Log.e("MyApp", "Can't initialize Catapush!", t);
                     }
-                }
-            );
+                });
     }
 }
 ```
