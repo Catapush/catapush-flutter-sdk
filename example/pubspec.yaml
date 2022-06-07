@@ -18,7 +18,7 @@ dependencies:
     # the parent directory to use the current plugin's version.
     path: ../
 
-  cupertino_icons: ^1.0.4
+  cupertino_icons: ^1.0.5
   equatable: ^2.0.0
   flutter_bloc: ^8.0.1
   shared_preferences: ^2.0.15

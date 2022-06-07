@@ -9,6 +9,7 @@ import com.catapush.library.Catapush
 import com.catapush.library.interfaces.Callback
 import com.catapush.library.interfaces.RecoverableErrorCallback
 import com.catapush.library.messages.CatapushMessage
+import com.catapush.library.push.models.PushPluginType
 import io.flutter.Log
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -24,6 +25,16 @@ class CatapushFlutterSdkPlugin: FlutterPlugin, MethodChannel.MethodCallHandler, 
   private var activity: Activity? = null
 
   private lateinit var channel : MethodChannel
+
+  init {
+    try {
+      val pluginType = Catapush::class.java.getDeclaredField("pluginType")
+      pluginType.isAccessible = true
+      pluginType[Catapush.getInstance() as Catapush] = PushPluginType.Flutter
+    } catch (e: Exception) {
+      Log.e("CatapushPlugin", "Can't initialize plugin instance", e)
+    }
+  }
 
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     CatapushFlutterEventDelegate.setContext(flutterPluginBinding.applicationContext)
