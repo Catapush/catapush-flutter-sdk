@@ -17,7 +17,7 @@ With Flutter:
 This will add a line like this to your package's pubspec.yaml (and run an implicit flutter pub get):
 ```
 dependencies:
-  catapush_flutter_sdk: ^1.0.0
+  catapush_flutter_sdk: ^1.3.0
 ```
 
 Now, in your Dart code, you can use:
@@ -225,20 +225,7 @@ public class MyApplication extends MultiDexApplication {
         }
 
         Catapush.getInstance()
-            .setNotificationIntent((catapushMessage, context) -> {
-                Log.d("MyApp", "Notification tapped: " + catapushMessage);
-                // This is the Activity you want to open when a notification is tapped:
-                Intent intent = new Intent(context, MainActivity.class);
-                // This is a unique URI set to the Intent to avoid its recycling for different
-                // Notifications when it's set as PendingIntent in the NotificationManager.
-                // There's no need to provide a valid scheme or path, it just need to be unique.
-                intent.setData(Uri.parse("catapush://message/" + catapushMessage.id()));
-                intent.putExtra("message", catapushMessage);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                // This PendingIntent will be set as "ContentIntent" in the local notification
-                // shown to the user in the Android notifications UI and launched on tap
-                return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_ONE_SHOT);
-            })
+            .setNotificationIntent(new CatapushFlutterIntentProvider(MainActivity.class)) // Required to make the catapushNotificationTapped callback work, pass your main Activity class here
             .init(
                 this,
                 CatapushFlutterEventDelegate.INSTANCE, // Required, the Flutter plugin won't work if you don't set this depegate instance
@@ -271,6 +258,30 @@ If you are defining a custom application class for your app for the first time, 
 ```
 
 Please note that, to be used, the `MultiDexApplication` requires your app to depend on the `androidx.multidex:multidex` dependency.
+
+### [Android] MainActivity class customization
+
+Your `MainActivity` implementation must forward the received `Intent`s to make the `catapushNotificationTapped` callback work:
+
+```java
+public class MainActivity extends FlutterActivity {
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        CatapushFlutterIntentProvider.Companion.handleIntent(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(@NonNull Intent intent) {
+        super.onNewIntent(intent);
+        CatapushFlutterIntentProvider.Companion.handleIntent(getIntent());
+    }
+
+}
+```
+
+The `Intent` instances will be handled only if generated from a Catapush notification.
 
 ### [Android] Configure a push services provider
 
@@ -318,6 +329,7 @@ abstract class CatapushStateDelegate {
 abstract class CatapushMessageDelegate {
   void catapushMessageReceived(CatapushMessage message);
   void catapushMessageSent(CatapushMessage message);
+  void catapushNotificationTapped(CatapushMessage message);
 }
 ```
 

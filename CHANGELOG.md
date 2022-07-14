@@ -1,3 +1,7 @@
+## [1.3.0] - 14/07/2022
+
+* Added the new `catapushNotificationTapped` callback, please review the `SETUP.md` guide to update your app code
+
 ## [1.2.1] - 07/06/2022
 
 * Minor improvements
