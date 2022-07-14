@@ -7,10 +7,13 @@ import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
 import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import androidx.core.content.ContextCompat
 import androidx.multidex.MultiDex
 import com.catapush.flutter.sdk.CatapushFlutterEventDelegate
+import com.catapush.flutter.sdk.CatapushFlutterIntentProvider
 import com.catapush.library.Catapush
 import com.catapush.library.exceptions.CatapushCompositeException
 import com.catapush.library.gms.CatapushGms
@@ -92,21 +95,7 @@ class App : FlutterApplication() {
         }
 
         Catapush.getInstance()
-            .setNotificationIntent(object : IIntentProvider {
-                override fun getIntentForMessage(
-                    message: CatapushMessage,
-                    context: Context
-                ): PendingIntent {
-                    val intent = Intent(
-                        context,
-                        MainActivity::class.java
-                    )
-                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                    val piFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-                        PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE else PendingIntent.FLAG_ONE_SHOT
-                    return PendingIntent.getActivity(context, 0, intent, piFlags)
-                }
-            })
+            .setNotificationIntent(CatapushFlutterIntentProvider(MainActivity::class.java))
             .setSecureCredentialsStoreCallback(object : Callback<Boolean> {
                 override fun success(response: Boolean) {
                     Log.i(LOG_TAG, "Secure credentials storage has been initialized!")

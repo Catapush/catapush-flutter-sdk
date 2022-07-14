@@ -40,6 +40,11 @@ class CMDelegate extends CatapushMessageDelegate{
     catapushMessagesBloc.add(CatapushMessagesEventFetch());
   }
 
+  @override
+  void catapushNotificationTapped(CatapushMessage message) {
+    debugPrint('NOTIFICATION TAPPED ${message.id}');
+  }
+
 }
 
 class CSDelegate extends CatapushStateDelegate{

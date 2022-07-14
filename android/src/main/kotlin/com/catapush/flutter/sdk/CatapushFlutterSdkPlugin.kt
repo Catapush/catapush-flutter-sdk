@@ -16,10 +16,31 @@ import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import java.lang.ref.WeakReference
 
-/** CatapushFlutterSdkPlugin */
+
 class CatapushFlutterSdkPlugin: FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware,
   IMessagesDispatchDelegate, IStatusDispatchDelegate {
+
+  companion object {
+    private val tappedMessagesQueue = ArrayList<CatapushMessage>()
+
+    private var instanceRef: WeakReference<CatapushFlutterSdkPlugin>? = null
+      set(value) {
+        field = value
+        tappedMessagesQueue.forEach(::handleNotificationTapped)
+        tappedMessagesQueue.clear()
+      }
+
+    fun handleNotificationTapped(message: CatapushMessage) {
+      val instance = instanceRef?.get()
+      if (instance != null) {
+        instance.dispatchNotificationTapped(message)
+      } else {
+        tappedMessagesQueue.add(message)
+      }
+    }
+  }
 
   private var appContext: Context? = null
   private var activity: Activity? = null
@@ -41,8 +62,10 @@ class CatapushFlutterSdkPlugin: FlutterPlugin, MethodChannel.MethodCallHandler, 
     CatapushFlutterEventDelegate.setMessagesDispatcher(this)
     CatapushFlutterEventDelegate.setStatusDispatcher(this)
     appContext = flutterPluginBinding.applicationContext
-    channel = MethodChannel(flutterPluginBinding.binaryMessenger, "Catapush")
-    channel.setMethodCallHandler(this)
+    channel = MethodChannel(flutterPluginBinding.binaryMessenger, "Catapush").also {
+      it.setMethodCallHandler(this)
+    }
+    instanceRef = WeakReference(this)
   }
 
   override fun onAttachedToActivity(binding: ActivityPluginBinding) {
@@ -248,6 +271,12 @@ class CatapushFlutterSdkPlugin: FlutterPlugin, MethodChannel.MethodCallHandler, 
   override fun dispatchMessageSent(message: CatapushMessage) {
     activity?.runOnUiThread {
       channel.invokeMethod("Catapush#catapushMessageSent", mapOf("message" to message.toMap()))
+    }
+  }
+
+  override fun dispatchNotificationTapped(message: CatapushMessage) {
+    activity?.runOnUiThread {
+      channel.invokeMethod("Catapush#catapushNotificationTapped", mapOf("message" to message.toMap()))
     }
   }
 

@@ -147,4 +147,5 @@ class CatapushSendMessage {
 abstract class CatapushMessageDelegate {
   void catapushMessageReceived(CatapushMessage message);
   void catapushMessageSent(CatapushMessage message);
+  void catapushNotificationTapped(CatapushMessage message);
 }
