@@ -50,6 +50,9 @@ object CatapushFlutterEventDelegate: ICatapushEventDelegate {
         messagesDispatcher?.dispatchMessageReceived(message)
     }
 
+    override fun onMessageReceivedConfirmed(message: CatapushMessage) {
+    }
+
     override fun onRegistrationFailed(error: CatapushAuthenticationError) {
         CatapushAuthenticationError::class.java.declaredFields.firstOrNull {
             Modifier.isStatic(it.modifiers)
