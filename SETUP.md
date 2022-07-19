@@ -33,6 +33,8 @@ import Foundation
 import UserNotifications
 import catapush_ios_sdk_pod
 
+let PENDING_NOTIF_DAYS = 5 // Represents the maximum time of cached messages for catapushNotificationTapped callback
+
 extension UNNotificationAttachment {
     static func create(identifier: String, image: UIImage, options: [NSObject : AnyObject]?) -> UNNotificationAttachment? {
         let fileManager = FileManager.default
@@ -71,6 +73,28 @@ class NotificationService: CatapushNotificationServiceExtension {
                         bestAttemptContent.attachments = [attachment]
                     }
                 }
+                // add the following part if you want to enable the catapushNotificationTapped callback
+                // START
+                let ud = UserDefaults.init(suiteName: (Bundle.main.object(forInfoDictionaryKey: "Catapush") as! (Dictionary<String,String>))["AppGroup"])
+                let pendingMessages : Dictionary<String, String>? = ud!.object(forKey: "pendingMessages") as? Dictionary<String, String>
+                var newPendingMessages: Dictionary<String, String>?
+                if (pendingMessages == nil) {
+                    newPendingMessages = Dictionary()
+                }else{
+                    let now = NSDate().timeIntervalSince1970
+                    newPendingMessages = pendingMessages!.filter({ pendingMessage in
+                        guard let timestamp = Double(pendingMessage.value.split(separator: "_").last ?? "") else {
+                            return false
+                        }
+                        if (timestamp + Double(PENDING_NOTIF_DAYS*24*60*60)) > now {
+                            return true
+                        }
+                        return false
+                    })
+                }
+                newPendingMessages![self.receivedRequest!.identifier] = "\(message!.messageId ?? "")_\(String(NSDate().timeIntervalSince1970))"
+                ud!.setValue(newPendingMessages, forKey: "pendingMessages")
+                // END
             }else{
                 bestAttemptContent.body = NSLocalizedString("no_message", comment: "");
             }
