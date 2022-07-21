@@ -207,6 +207,14 @@ class Catapush {
       }
       _catapushStateDelegate?.catapushStateChanged(status);
 
+    } else if (call.method == 'Catapush#catapushNotificationTapped'
+        && _catapushMessageDelegate != null) {
+      final args = call.arguments as Map<Object?, Object?>;
+      final result = CatapushMessage
+          .fromMap((args['message']! as Map<dynamic, dynamic>)
+          .cast<String, dynamic>());
+      _catapushMessageDelegate?.catapushNotificationTapped(result);
+
     } else if (call.method == 'Catapush#catapushHandleError'
         && _catapushStateDelegate != null) {
       final args = call.arguments as Map<Object?, Object?>;
