@@ -86,7 +86,8 @@ class CatapushFlutterSdkPlugin: FlutterPlugin, MethodChannel.MethodCallHandler, 
   @SuppressLint("RestrictedApi")
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: MethodChannel.Result) {
     if (call.method == "Catapush#init") {
-      if ((Catapush.getInstance() as Catapush).isInitialized.blockingFirst(false)) {
+      val initialized = (Catapush.getInstance() as Catapush).waitInitialization()
+      if (initialized) {
         result.success(mapOf("result" to true))
       } else {
         result.error("bad state", "${call.method} please invoke Catapush.getInstance().init(...) in the Application.onCreate(...) callback of your Android native app", null)
