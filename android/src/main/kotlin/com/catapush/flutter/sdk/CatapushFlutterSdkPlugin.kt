@@ -26,24 +26,28 @@ class CatapushFlutterSdkPlugin: FlutterPlugin, MethodChannel.MethodCallHandler, 
     private val tappedMessagesQueue = ArrayList<CatapushMessage>()
 
     private var instanceRef: WeakReference<CatapushFlutterSdkPlugin>? = null
+
+    private var contextRef: WeakReference<Context>? = null
+
+    private var activityRef: WeakReference<Activity>? = null
       set(value) {
         field = value
-        tappedMessagesQueue.forEach(::handleNotificationTapped)
-        tappedMessagesQueue.clear()
+        if (value?.get() != null && tappedMessagesQueue.isNotEmpty()) {
+          tappedMessagesQueue.forEach { instanceRef?.get()?.dispatchNotificationTapped(it) }
+          tappedMessagesQueue.clear()
+        }
       }
 
     fun handleNotificationTapped(message: CatapushMessage) {
       val instance = instanceRef?.get()
-      if (instance != null) {
+      val activity = activityRef?.get()
+      if (instance != null && activity != null) {
         instance.dispatchNotificationTapped(message)
       } else {
         tappedMessagesQueue.add(message)
       }
     }
   }
-
-  private var appContext: Context? = null
-  private var activity: Activity? = null
 
   private lateinit var channel : MethodChannel
 
@@ -55,32 +59,33 @@ class CatapushFlutterSdkPlugin: FlutterPlugin, MethodChannel.MethodCallHandler, 
     } catch (e: Exception) {
       Log.e("CatapushPlugin", "Can't initialize plugin instance", e)
     }
+    instanceRef = WeakReference(this)
   }
 
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     CatapushFlutterEventDelegate.setContext(flutterPluginBinding.applicationContext)
     CatapushFlutterEventDelegate.setMessagesDispatcher(this)
     CatapushFlutterEventDelegate.setStatusDispatcher(this)
-    appContext = flutterPluginBinding.applicationContext
+    contextRef = WeakReference(flutterPluginBinding.applicationContext)
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "Catapush").also {
       it.setMethodCallHandler(this)
     }
-    instanceRef = WeakReference(this)
   }
 
   override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-    activity = binding.activity
+    activityRef = WeakReference(binding.activity)
   }
 
   override fun onDetachedFromActivityForConfigChanges() {
+    activityRef = null
   }
 
   override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-    activity = binding.activity
+    activityRef = WeakReference(binding.activity)
   }
 
   override fun onDetachedFromActivity() {
-    activity = null
+    activityRef = null
   }
 
   @SuppressLint("RestrictedApi")
@@ -264,32 +269,37 @@ class CatapushFlutterSdkPlugin: FlutterPlugin, MethodChannel.MethodCallHandler, 
   }
 
   override fun dispatchMessageReceived(message: CatapushMessage) {
-    activity?.runOnUiThread {
-      channel.invokeMethod("Catapush#catapushMessageReceived", mapOf("message" to message.toMap()))
+    activityRef?.get()?.runOnUiThread {
+      val args = mapOf("message" to message.toMap())
+      channel.invokeMethod("Catapush#catapushMessageReceived", args)
     }
   }
 
   override fun dispatchMessageSent(message: CatapushMessage) {
-    activity?.runOnUiThread {
-      channel.invokeMethod("Catapush#catapushMessageSent", mapOf("message" to message.toMap()))
+    activityRef?.get()?.runOnUiThread {
+      val args = mapOf("message" to message.toMap())
+      channel.invokeMethod("Catapush#catapushMessageSent", args)
     }
   }
 
   override fun dispatchNotificationTapped(message: CatapushMessage) {
-    activity?.runOnUiThread {
-      channel.invokeMethod("Catapush#catapushNotificationTapped", mapOf("message" to message.toMap()))
+    activityRef?.get()?.runOnUiThread {
+      val args = mapOf("message" to message.toMap())
+      channel.invokeMethod("Catapush#catapushNotificationTapped", args)
     }
   }
 
   override fun dispatchConnectionStatus(status: String) {
-    activity?.runOnUiThread {
-      channel.invokeMethod("Catapush#catapushStateChanged", mapOf("status" to status))
+    activityRef?.get()?.runOnUiThread {
+      val args = mapOf("status" to status)
+      channel.invokeMethod("Catapush#catapushStateChanged", args)
     }
   }
 
   override fun dispatchError(event: String, code: Int) {
-    activity?.runOnUiThread {
-      channel.invokeMethod("Catapush#catapushHandleError", mapOf("event" to event, "code" to code))
+    activityRef?.get()?.runOnUiThread {
+      val args = mapOf("event" to event, "code" to code)
+      channel.invokeMethod("Catapush#catapushHandleError", args)
     }
   }
 
