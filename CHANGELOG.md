@@ -1,3 +1,7 @@
+## [1.3.1] - 16/08/2022
+
+* Fixed a race condition in the `catapushNotificationTapped` callback when the app is cold starting on Android
+
 ## [1.3.0] - 14/07/2022
 
 * Added the new `catapushNotificationTapped` callback, please review the `SETUP.md` guide to update your app code
