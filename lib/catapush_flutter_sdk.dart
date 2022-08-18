@@ -204,8 +204,6 @@ class Catapush {
 
   // Private function that gets called by ObjC/Java
   Future<void> _handleMethod(MethodCall call) async {
-    debugPrint('Catapush Flutter SDK - native layer invoked ${call.method}');
-
     if (call.method == 'Catapush#catapushMessageReceived') {
       final args = call.arguments as Map<Object?, Object?>;
       final message = CatapushMessage
