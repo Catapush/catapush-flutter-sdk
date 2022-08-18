@@ -1,3 +1,7 @@
+## 1.3.2
+
+* Fixed another race condition in the `catapushNotificationTapped` callback when the app is cold starting on Android
+
 ## 1.3.1
 
 * Fixed a race condition in the `catapushNotificationTapped` callback when the app is cold starting on Android
