@@ -10,7 +10,7 @@
 
 * Added the new `catapushNotificationTapped` callback, please review the `SETUP.md` guide to update your app code
 
-## [1.2.1
+## 1.2.1
 
 * Minor improvements
 
