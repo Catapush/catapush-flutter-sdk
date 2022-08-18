@@ -8,6 +8,7 @@ abstract class AuthenticationEvent extends Equatable {
   List<Object> get props => [];
 }
 
+@immutable
 class AuthenticationStatusChanged extends AuthenticationEvent {
   const AuthenticationStatusChanged(this.status);
 
@@ -17,4 +18,5 @@ class AuthenticationStatusChanged extends AuthenticationEvent {
   List<Object> get props => [status];
 }
 
+@immutable
 class AuthenticationLogoutRequested extends AuthenticationEvent {}

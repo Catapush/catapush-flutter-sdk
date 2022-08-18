@@ -4,6 +4,7 @@ abstract class CatapushMessagesState extends Equatable {
   const CatapushMessagesState();
 }
 
+@immutable
 class CatapushMessagesStateWithValue extends CatapushMessagesState {
   final List<CatapushMessage> messages;
 
