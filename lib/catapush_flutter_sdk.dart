@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:catapush_flutter_sdk/catapush_flutter_models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:rxdart/subjects.dart';
 
 export 'catapush_flutter_models.dart';
 export 'catapush_flutter_widgets.dart';
@@ -15,6 +16,17 @@ class Catapush {
   static Catapush shared = Catapush();
 
   final MethodChannel _channel = const MethodChannel('Catapush');
+
+  final _receivedMessageQueueSubject = ReplaySubject<CatapushMessage>(maxSize: 100);
+  StreamSubscription? _receivedMessageQueueSubscription;
+  final _sentMessageQueueSubject = ReplaySubject<CatapushMessage>(maxSize: 100);
+  StreamSubscription? _sentMessageQueueSubscription;
+  final _notificationTappedQueueSubject = ReplaySubject<CatapushMessage>(maxSize: 100);
+  StreamSubscription? _notificationTappedQueueSubscription;
+  final _stateSubject = BehaviorSubject<CatapushState>();
+  StreamSubscription? _stateSubscription;
+  final _errorQueueSubject = ReplaySubject<CatapushError>(maxSize: 100);
+  StreamSubscription? _errorQueueSubscription;
 
   CatapushMessageDelegate? _catapushMessageDelegate;
   CatapushStateDelegate? _catapushStateDelegate;
@@ -110,10 +122,30 @@ class Catapush {
 
   void setCatapushMessageDelegate(CatapushMessageDelegate delegate) {
     _catapushMessageDelegate = delegate;
+
+    _receivedMessageQueueSubscription?.cancel();
+    _receivedMessageQueueSubscription = _receivedMessageQueueSubject
+        .listen(_catapushMessageDelegate?.catapushMessageReceived);
+
+    _sentMessageQueueSubscription?.cancel();
+    _sentMessageQueueSubscription = _sentMessageQueueSubject
+        .listen(_catapushMessageDelegate?.catapushMessageSent);
+
+    _notificationTappedQueueSubscription?.cancel();
+    _notificationTappedQueueSubscription = _notificationTappedQueueSubject
+        .listen(_catapushMessageDelegate?.catapushNotificationTapped);
   }
 
   void setCatapushStateDelegate(CatapushStateDelegate delegate) {
     _catapushStateDelegate = delegate;
+
+    _stateSubscription?.cancel();
+    _stateSubscription = _stateSubject
+        .listen(_catapushStateDelegate?.catapushStateChanged);
+
+    _errorQueueSubscription?.cancel();
+    _errorQueueSubscription = _errorQueueSubject
+        .listen(_catapushStateDelegate?.catapushHandleError);
   }
 
   Future<CatapushFile> getAttachmentUrlForMessage(CatapushMessage message) async {
@@ -172,56 +204,66 @@ class Catapush {
 
   // Private function that gets called by ObjC/Java
   Future<void> _handleMethod(MethodCall call) async {
-    debugPrint('Catapush Flutter SDK - native layer invoked ${call.method}');
-
-    if (call.method == 'Catapush#catapushMessageReceived'
-        && _catapushMessageDelegate != null) {
+    if (call.method == 'Catapush#catapushMessageReceived') {
       final args = call.arguments as Map<Object?, Object?>;
-      final result = CatapushMessage
+      final message = CatapushMessage
           .fromMap((args['message']! as Map<dynamic, dynamic>)
           .cast<String, dynamic>());
-      _catapushMessageDelegate?.catapushMessageReceived(result);
+      if (_catapushMessageDelegate != null) {
+        _catapushMessageDelegate?.catapushMessageReceived(message);
+      } else {
+        _receivedMessageQueueSubject.add(message);
+      }
 
-    } else if (call.method == 'Catapush#catapushMessageSent'
-        && _catapushMessageDelegate != null) {
+    } else if (call.method == 'Catapush#catapushMessageSent') {
       final args = call.arguments as Map<Object?, Object?>;
-      final result = CatapushMessage
+      final message = CatapushMessage
           .fromMap((args['message']! as Map<dynamic, dynamic>)
           .cast<String, dynamic>());
-      _catapushMessageDelegate?.catapushMessageSent(result);
+      if (_catapushMessageDelegate != null) {
+        _catapushMessageDelegate?.catapushMessageSent(message);
+      } else {
+        _sentMessageQueueSubject.add(message);
+      }
 
-    } else if (call.method == 'Catapush#catapushStateChanged'
-        && _catapushStateDelegate != null) {
-      CatapushState status;
+    } else if (call.method == 'Catapush#catapushStateChanged') {
+      CatapushState catapushState;
       final args = call.arguments as Map<Object?, Object?>;
       switch((args['status']! as String).toUpperCase()){
         case 'DISCONNECTED':
-          status = CatapushState.DISCONNECTED;
+          catapushState = CatapushState.DISCONNECTED;
           break;
         case 'CONNECTED':
-          status = CatapushState.CONNECTED;
+          catapushState = CatapushState.CONNECTED;
           break;
         default:
-          status = CatapushState.CONNECTING;
+          catapushState = CatapushState.CONNECTING;
           break;
       }
-      _catapushStateDelegate?.catapushStateChanged(status);
+      _stateSubject.add(catapushState);
 
-    } else if (call.method == 'Catapush#catapushNotificationTapped'
-        && _catapushMessageDelegate != null) {
+    } else if (call.method == 'Catapush#catapushNotificationTapped') {
       final args = call.arguments as Map<Object?, Object?>;
-      final result = CatapushMessage
+      final message = CatapushMessage
           .fromMap((args['message']! as Map<dynamic, dynamic>)
           .cast<String, dynamic>());
-      _catapushMessageDelegate?.catapushNotificationTapped(result);
+      if (_catapushMessageDelegate != null) {
+        _catapushMessageDelegate?.catapushNotificationTapped(message);
+      } else {
+        _notificationTappedQueueSubject.add(message);
+      }
 
-    } else if (call.method == 'Catapush#catapushHandleError'
-        && _catapushStateDelegate != null) {
+    } else if (call.method == 'Catapush#catapushHandleError') {
       final args = call.arguments as Map<Object?, Object?>;
-      _catapushStateDelegate?.catapushHandleError(CatapushError(
+      final error = CatapushError(
         args['event']! as String,
         args['code']! as int,
-      ));
+      );
+      if (_catapushStateDelegate != null) {
+        _catapushStateDelegate?.catapushHandleError(error);
+      } else {
+        _errorQueueSubject.add(error);
+      }
     }
   }
 

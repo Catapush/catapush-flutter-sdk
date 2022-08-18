@@ -2,7 +2,6 @@ package com.catapush.flutter.sdk
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.Context
 import android.net.Uri
 import androidx.annotation.NonNull
 import com.catapush.library.Catapush
@@ -24,24 +23,20 @@ class CatapushFlutterSdkPlugin: FlutterPlugin, MethodChannel.MethodCallHandler, 
 
   companion object {
     private val tappedMessagesQueue = ArrayList<CatapushMessage>()
-
     private var instanceRef: WeakReference<CatapushFlutterSdkPlugin>? = null
-
-    private var contextRef: WeakReference<Context>? = null
-
+      set(value) {
+        field = value
+        value?.get()?.tryDispatchQueuedEvents()
+      }
     private var activityRef: WeakReference<Activity>? = null
       set(value) {
         field = value
-        if (value?.get() != null && tappedMessagesQueue.isNotEmpty()) {
-          tappedMessagesQueue.forEach { instanceRef?.get()?.dispatchNotificationTapped(it) }
-          tappedMessagesQueue.clear()
-        }
+        instanceRef?.get()?.tryDispatchQueuedEvents()
       }
 
     fun handleNotificationTapped(message: CatapushMessage) {
       val instance = instanceRef?.get()
-      val activity = activityRef?.get()
-      if (instance != null && activity != null) {
+      if (instance?.isChannelReady() == true) {
         instance.dispatchNotificationTapped(message)
       } else {
         tappedMessagesQueue.add(message)
@@ -50,6 +45,7 @@ class CatapushFlutterSdkPlugin: FlutterPlugin, MethodChannel.MethodCallHandler, 
   }
 
   private lateinit var channel : MethodChannel
+  private var inited = false
 
   init {
     try {
@@ -66,7 +62,6 @@ class CatapushFlutterSdkPlugin: FlutterPlugin, MethodChannel.MethodCallHandler, 
     CatapushFlutterEventDelegate.setContext(flutterPluginBinding.applicationContext)
     CatapushFlutterEventDelegate.setMessagesDispatcher(this)
     CatapushFlutterEventDelegate.setStatusDispatcher(this)
-    contextRef = WeakReference(flutterPluginBinding.applicationContext)
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "Catapush").also {
       it.setMethodCallHandler(this)
     }
@@ -91,8 +86,9 @@ class CatapushFlutterSdkPlugin: FlutterPlugin, MethodChannel.MethodCallHandler, 
   @SuppressLint("RestrictedApi")
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: MethodChannel.Result) {
     if (call.method == "Catapush#init") {
-      val initialized = (Catapush.getInstance() as Catapush).waitInitialization()
-      if (initialized) {
+      inited = (Catapush.getInstance() as Catapush).waitInitialization()
+      if (inited) {
+        tryDispatchQueuedEvents()
         result.success(mapOf("result" to true))
       } else {
         result.error("bad state", "${call.method} please invoke Catapush.getInstance().init(...) in the Application.onCreate(...) callback of your Android native app", null)
@@ -300,6 +296,17 @@ class CatapushFlutterSdkPlugin: FlutterPlugin, MethodChannel.MethodCallHandler, 
     activityRef?.get()?.runOnUiThread {
       val args = mapOf("event" to event, "code" to code)
       channel.invokeMethod("Catapush#catapushHandleError", args)
+    }
+  }
+
+  private fun isChannelReady() : Boolean {
+    return inited && instanceRef?.get() != null && activityRef?.get() != null
+  }
+
+  private fun tryDispatchQueuedEvents() {
+    if (isChannelReady() && tappedMessagesQueue.isNotEmpty()) {
+      tappedMessagesQueue.forEach { instanceRef?.get()?.dispatchNotificationTapped(it) }
+      tappedMessagesQueue.clear()
     }
   }
 

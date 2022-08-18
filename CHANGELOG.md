@@ -1,24 +1,28 @@
-## [1.3.1] - 16/08/2022
+## 1.3.2
+
+* Fixed another race condition in the `catapushNotificationTapped` callback when the app is cold starting on Android
+
+## 1.3.1
 
 * Fixed a race condition in the `catapushNotificationTapped` callback when the app is cold starting on Android
 
-## [1.3.0] - 14/07/2022
+## 1.3.0
 
 * Added the new `catapushNotificationTapped` callback, please review the `SETUP.md` guide to update your app code
 
-## [1.2.1] - 07/06/2022
+## [1.2.1
 
 * Minor improvements
 
-## [1.2.0] - 13/05/2022
+## 1.2.0
 
 * Update Catapush Android SDK to 12.0.0. This is a breaking change, please refer to SETUP.md and the [Catapush Android SDK documentation](https://github.com/Catapush/catapush-docs/blob/master/AndroidSDK/DOCUMENTATION_ANDROID_SDK.md)
 * Add the Catapush.shared.stop() method
 
-## [1.1.0] - 09/03/2021
+## 1.1.0
 
 * Update Catapush Android SDK to 11.2.0. This is a breaking change, please refer to SETUP.md
 
-## [1.0.0] - 26/10/2021
+## 1.0.0
 
 * First public release.

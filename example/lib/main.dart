@@ -15,6 +15,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
   final userRepository = UserRepository();
   runApp(App(
     authenticationRepository: AuthenticationRepository(userRepository),
@@ -118,9 +120,6 @@ class AppViewState extends State<AppView> {
 
   NavigatorState get _navigator => _navigatorKey.currentState!;
 
-  late CMDelegate _catapushMessageDelegate;
-  late CSDelegate _catapushStateDelegate;
-
   @override
   void initState() {
     super.initState();
@@ -130,14 +129,16 @@ class AppViewState extends State<AppView> {
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initCatapush() async {
     Catapush.shared.enableLog(!kReleaseMode);
+
+    Catapush.shared.setCatapushMessageDelegate(
+        CMDelegate(BlocProvider.of<CatapushMessagesBloc>(context)));
+    Catapush.shared.setCatapushStateDelegate(
+        CSDelegate(BlocProvider.of<CatapushStateBloc>(context)));
+
     final init = await Catapush.shared.init(
       ios: iOSSettings('YOUR CATAPUSH APP KEY'),
     );
     debugPrint('Init: $init');
-    _catapushMessageDelegate = CMDelegate(BlocProvider.of<CatapushMessagesBloc>(context));
-    _catapushStateDelegate = CSDelegate(BlocProvider.of<CatapushStateBloc>(context));
-    Catapush.shared.setCatapushMessageDelegate(_catapushMessageDelegate);
-    Catapush.shared.setCatapushStateDelegate(_catapushStateDelegate);
   }
 
   @override

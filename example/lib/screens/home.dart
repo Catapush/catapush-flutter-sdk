@@ -61,8 +61,9 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             icon: const Icon(Icons.logout),
             tooltip: 'Logout',
             onPressed: () async {
+              final authenticationBloc = context.read<AuthenticationBloc>();
               await Catapush.shared.logout().onError((error, stackTrace) => true);
-              context.read<AuthenticationBloc>().add(AuthenticationLogoutRequested());
+              authenticationBloc.add(AuthenticationLogoutRequested());
             },
           )
         ],
@@ -171,6 +172,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ElevatedButton(
                     child: const Text('SEND'),
                     onPressed: () async {
+                      final messageBloc = BlocProvider.of<CatapushMessagesBloc>(context);
                       await Catapush.shared.sendMessage(CatapushSendMessage(
                         text: _messageController.text,
                         file: _attachment,
@@ -179,7 +181,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         _attachment = null;
                       });
                       _messageController.clear();
-                      BlocProvider.of<CatapushMessagesBloc>(context).add(CatapushMessagesEventFetch());
+                      messageBloc.add(CatapushMessagesEventFetch());
                     },
                   ),
                 ],
