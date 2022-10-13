@@ -14,7 +14,7 @@ DESC
   s.author           = { 'Your Company' => 'email@example.com' }
   s.source           = { :path => '.' }
   s.dependency 'Flutter'
-  s.platform = :ios, '10.0'
+  s.platform = :ios, '11.0'
 
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
@@ -22,6 +22,6 @@ DESC
   s.frameworks = 'SystemConfiguration','MobileCoreServices'
 
   s.source_files = 'Classes/**/*'
-  s.dependency 'catapush-ios-sdk-pod', '2.1.15'
+  s.dependency 'catapush-ios-sdk-pod', '2.2.1'
   s.static_framework = true
 end
