@@ -1,3 +1,8 @@
+## 1.4.0
+
+* Update Catapush iOS SDK to 2.2.1, requires Xcode 14
+* Update Catapush Android SDK to 12.0.6
+
 ## 1.3.2
 
 * Fixed another race condition in the `catapushNotificationTapped` callback when the app is cold starting on Android
@@ -10,7 +15,7 @@
 
 * Added the new `catapushNotificationTapped` callback, please review the `SETUP.md` guide to update your app code
 
-## [1.2.1
+## 1.2.1
 
 * Minor improvements
 

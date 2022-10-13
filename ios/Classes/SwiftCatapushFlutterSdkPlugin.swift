@@ -70,7 +70,7 @@ public class SwiftCatapushFlutterSdkPlugin: NSObject, FlutterPlugin {
             if let args = call.arguments as? Dictionary<String, Any>, let ios = args["ios"] as? Dictionary<String, Any> {
                 let appId = ios["appId"] as? String
                 Catapush.setAppKey(appId)
-                Catapush.registerUserNotification(UIApplication.shared.delegate as? UIResponder)
+                Catapush.registerUserNotification(UIApplication.shared.delegate as! UIResponder)
                 result(["result": true])
             } else {
                 result(FlutterError.init(code: "bad args", message: nil, details: nil))
@@ -132,7 +132,7 @@ public class SwiftCatapushFlutterSdkPlugin: NSObject, FlutterPlugin {
                         if let replyTo = replyTo {
                             message = Catapush.sendMessage(withText: text, replyTo: replyTo)
                         }else{
-                            message = Catapush.sendMessage(withText: text)!
+                            message = Catapush.sendMessage(withText: text)
                         }
                     }
                 }
@@ -174,7 +174,8 @@ public class SwiftCatapushFlutterSdkPlugin: NSObject, FlutterPlugin {
         if "Catapush#getAttachmentUrlForMessage" == call.method {
             if let args = call.arguments as? Dictionary<String, Any>, let id = args["id"] as? String {
                 let predicate = NSPredicate(format: "messageId = %@", id)
-                if let matches = Catapush.messages(with: predicate), matches.count > 0 {
+                let matches = Catapush.messages(with: predicate)
+                if matches.count > 0 {
                     let messageIP = matches.first! as! MessageIP
                     if messageIP.hasMedia() {
                         if messageIP.mm != nil {
@@ -184,13 +185,13 @@ public class SwiftCatapushFlutterSdkPlugin: NSObject, FlutterPlugin {
                                return
                             }
                             let tempDirectoryURL = NSURL.fileURL(withPath: NSTemporaryDirectory(), isDirectory: true)
-                            let filePath = tempDirectoryURL.appendingPathComponent("\(messageIP.messageId!).\(ext.takeRetainedValue())")
+                            let filePath = tempDirectoryURL.appendingPathComponent("\(messageIP.messageId).\(ext.takeRetainedValue())")
                             let fileManager = FileManager.default
                             if fileManager.fileExists(atPath: filePath.path) {
                                 result(["url": filePath.path, "mimeType": messageIP.mmType])
                             }
                             do {
-                                try messageIP.mm.write(to: filePath)
+                                try messageIP.mm!.write(to: filePath)
                                 result(["url": filePath.path, "mimeType": messageIP.mmType])
                             } catch {
                                 result(FlutterError.init(code: "Could not write file", message: error.localizedDescription, details: nil))
@@ -201,7 +202,8 @@ public class SwiftCatapushFlutterSdkPlugin: NSObject, FlutterPlugin {
                                     result(FlutterError.init(code: "Error downloadMedia", message: error?.localizedDescription, details: nil))
                                 }else{
                                     let predicate = NSPredicate(format: "messageId = %@", id)
-                                    if let matches = Catapush.messages(with: predicate), matches.count > 0 {
+                                    let matches = Catapush.messages(with: predicate)
+                                    if matches.count > 0 {
                                         let messageIP = matches.first! as! MessageIP
                                         if messageIP.hasMedia() {
                                             if messageIP.mm != nil {
@@ -211,13 +213,13 @@ public class SwiftCatapushFlutterSdkPlugin: NSObject, FlutterPlugin {
                                                     return
                                                 }
                                                 let tempDirectoryURL = NSURL.fileURL(withPath: NSTemporaryDirectory(), isDirectory: true)
-                                                let filePath = tempDirectoryURL.appendingPathComponent("\(messageIP.messageId!).\(ext.takeRetainedValue())")
+                                                let filePath = tempDirectoryURL.appendingPathComponent("\(messageIP.messageId).\(ext.takeRetainedValue())")
                                                 let fileManager = FileManager.default
                                                 if fileManager.fileExists(atPath: filePath.path) {
                                                     result(["url": filePath.path])
                                                 }
                                                 do {
-                                                    try messageIP.mm.write(to: filePath)
+                                                    try messageIP.mm!.write(to: filePath)
                                                     result(["url": filePath.path, "mimeType": messageIP.mmType])
                                                 } catch {
                                                     result(FlutterError.init(code: "Could not write file", message: error.localizedDescription, details: nil))
@@ -547,7 +549,7 @@ extension SwiftCatapushFlutterSdkPlugin: UNUserNotificationCenterDelegate {
             let id: String = String(pendingMessages![response.notification.request.identifier]!.split(separator: "_").first ?? "")
             let predicate = NSPredicate(format: "messageId == %@", id)
             let matches = Catapush.messages(with: predicate)
-            if let m = matches, m.count > 0, let messageIP = m.first as? MessageIP {
+            if matches.count > 0, let messageIP = matches.first as? MessageIP {
                 channel?.invokeMethod("Catapush#catapushNotificationTapped", arguments: ["message" : SwiftCatapushFlutterSdkPlugin.formatMessageID(message: messageIP)])
                 var newPendingMessages: Dictionary<String, String>?
                 if (pendingMessages == nil) {

@@ -97,7 +97,8 @@ class NotificationService: CatapushNotificationServiceExtension {
             if (errorCode == CatapushNoMessagesError) {
                 if let request = self.receivedRequest, let catapushID = request.content.userInfo["catapushID"] as? String {
                     let predicate = NSPredicate(format: "messageId = %@", catapushID)
-                    if let matches = Catapush.messages(with: predicate), matches.count > 0 {
+                    let matches = Catapush.messages(with: predicate)
+                    if matches.count > 0 {
                         let message = matches.first! as! MessageIP
                         if message.status.intValue == MESSAGEIP_STATUS.MessageIP_READ.rawValue{
                             bestAttemptContent.body = "Message already read: " + message.body;
