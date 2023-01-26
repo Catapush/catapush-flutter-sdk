@@ -305,7 +305,7 @@ class CatapushFlutterSdkPlugin: FlutterPlugin, MethodChannel.MethodCallHandler, 
 
   private fun tryDispatchQueuedEvents() {
     if (isChannelReady() && tappedMessagesQueue.isNotEmpty()) {
-      tappedMessagesQueue.forEach { instanceRef?.get()?.dispatchNotificationTapped(it) }
+      tappedMessagesQueue.forEach { dispatchNotificationTapped(it) }
       tappedMessagesQueue.clear()
     }
   }

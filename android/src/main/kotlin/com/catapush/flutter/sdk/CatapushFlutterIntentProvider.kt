@@ -6,10 +6,10 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import com.catapush.library.interfaces.IIntentProvider
+import com.catapush.library.interfaces.ICatapushNotificationIntentProvider
 import com.catapush.library.messages.CatapushMessage
 
-class CatapushFlutterIntentProvider(private val targetActivityClass: Class<out Activity>): IIntentProvider {
+class CatapushFlutterIntentProvider(private val targetActivityClass: Class<out Activity>): ICatapushNotificationIntentProvider {
 
     companion object {
         fun handleIntent(intent: Intent) {
