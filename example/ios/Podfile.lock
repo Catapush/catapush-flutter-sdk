@@ -1,7 +1,7 @@
 PODS:
-  - catapush-ios-sdk-pod (2.2.1)
+  - catapush-ios-sdk-pod (2.2.2)
   - catapush_flutter_sdk (0.0.1):
-    - catapush-ios-sdk-pod (= 2.2.1)
+    - catapush-ios-sdk-pod (= 2.2.2)
     - Flutter
   - Flutter (1.0.0)
   - image_picker_ios (0.0.1):
@@ -12,7 +12,7 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
-  - catapush-ios-sdk-pod (= 2.2.1)
+  - catapush-ios-sdk-pod (= 2.2.2)
   - catapush_flutter_sdk (from `.symlinks/plugins/catapush_flutter_sdk/ios`)
   - Flutter (from `Flutter`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
@@ -36,13 +36,13 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/shared_preferences_ios/ios"
 
 SPEC CHECKSUMS:
-  catapush-ios-sdk-pod: 2a6c58b80c994508b255f12fa1f106743dedb307
-  catapush_flutter_sdk: 97a7f311383cd60f752844413b93f371e5993afb
+  catapush-ios-sdk-pod: 63d40e7c18f2b9cceb50286cb319758e0232ad76
+  catapush_flutter_sdk: 862f425e9af581c3b211ec5216cb1e4b69a12783
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
   image_picker_ios: b786a5dcf033a8336a657191401bfdf12017dabb
   permission_handler_apple: 44366e37eaf29454a1e7b1b7d736c2cceaeb17ce
   shared_preferences_ios: 548a61f8053b9b8a49ac19c1ffbc8b92c50d68ad
 
-PODFILE CHECKSUM: 4c258422f8d2641d1817bc5e796a8a4459da038c
+PODFILE CHECKSUM: 103642a47bea29cae8476ccd436b43c84dfcd0a1
 
 COCOAPODS: 1.11.3

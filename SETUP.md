@@ -190,18 +190,23 @@ Then you need to declare the Catapush broadcast receiver and a permission to sec
 
 ### [Android] Application class customization
 
-You must initialize Catapush in your class that extends `Application`.
+You must initialize Catapush in your class that extends `Application`, implementing the `ICatapushInitializer` interface.
 
 You also have to provide your customized notification style template here.
 
 Your `Application.onCreate()` method should contain the following lines:
 
 ```java
-public class MyApplication extends MultiDexApplication {
+public class MyApplication extends MultiDexApplication implements ICatapushInitializer {
 
     @Override
     public void onCreate() {
         super.onCreate();
+        initCatapush();
+    }
+
+    @Override
+    public void initCatapush() {
 
         // This is the notification template that the Catapush SDK uses to build
         // the status bar notification shown to the user.
@@ -249,11 +254,12 @@ public class MyApplication extends MultiDexApplication {
         }
 
         Catapush.getInstance()
-            .setNotificationIntent(new CatapushFlutterIntentProvider(MainActivity.class)) // Required to make the catapushNotificationTapped callback work, pass your main Activity class here
             .init(
+                this,
                 this,
                 CatapushFlutterEventDelegate.INSTANCE, // Required, the Flutter plugin won't work if you don't set this depegate instance
                 Collections.singletonList(CatapushGms.INSTANCE),
+                new CatapushFlutterIntentProvider(MainActivity.class),
                 notificationTemplate,
                 null,
                 new Callback<Boolean>() {
@@ -299,7 +305,7 @@ public class MainActivity extends FlutterActivity {
     @Override
     protected void onNewIntent(@NonNull Intent intent) {
         super.onNewIntent(intent);
-        CatapushFlutterIntentProvider.Companion.handleIntent(getIntent());
+        CatapushFlutterIntentProvider.Companion.handleIntent(intent);
     }
 
 }
