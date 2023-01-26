@@ -63,11 +63,11 @@ class CatapushMessageWidget extends StatelessWidget {
                 children: [
                   Text(
                     message.body ?? '',
-                    style: textTheme.bodyText1,
+                    style: textTheme.bodyLarge,
                   ),
                   Text(
                     _formatMessageDate() + _confirmedCheck(),
-                    style: textTheme.caption,
+                    style: textTheme.bodySmall,
                   ),
                   if (message.hasAttachment) _buildImageBox(),
                 ],
@@ -105,12 +105,12 @@ class CatapushMessageWidget extends StatelessWidget {
                 children: [
                   Text(
                     message.body ?? '',
-                    style: textTheme.bodyText1,
+                    style: textTheme.bodyLarge,
                     textAlign: TextAlign.right,
                   ),
                   Text(
                     _formatMessageDate() + _confirmedCheck(),
-                    style: textTheme.caption,
+                    style: textTheme.bodySmall,
                   ),
                   if (message.hasAttachment) _buildImageBox(),
                 ],
@@ -128,12 +128,12 @@ class CatapushMessageWidget extends StatelessWidget {
       builder: (BuildContext context, AsyncSnapshot<CatapushFile> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(textTheme.caption!.color!),
+            valueColor: AlwaysStoppedAnimation<Color>(textTheme.bodySmall!.color!),
           );
         } else if (snapshot.hasError) {
           return Text(
             'Error: ${snapshot.error}',
-            style: textTheme.bodyText1,
+            style: textTheme.bodyLarge,
           );
         } else {
           final url = snapshot.data!.url;
