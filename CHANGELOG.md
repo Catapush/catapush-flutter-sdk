@@ -1,3 +1,8 @@
+## 1.5.0
+
+* Update Catapush iOS SDK to 2.2.2
+* Update Catapush Android SDK to 12.1.1, requires Android compile SDK version 33
+
 ## 1.4.0
 
 * Update Catapush iOS SDK to 2.2.1, requires Xcode 14
