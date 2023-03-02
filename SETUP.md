@@ -384,6 +384,12 @@ void catapushMessageReceived(CatapushMessage message) {
 }
 ```
 
+To retrieve all received messages:
+
+```dart
+final allMessages = await Catapush.shared.allMessages();
+```
+
 
 ### Advanced usage
 In order to send an attachment, send a read receipt, and more see the demo project in the `/example` folder of this repository.
