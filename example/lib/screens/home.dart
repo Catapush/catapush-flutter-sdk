@@ -34,6 +34,17 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     super.initState();
     Catapush.shared.pauseNotifications();
     WidgetsBinding.instance.addObserver(this);
+
+    if (Platform.isAndroid) {
+      Permission.notification.status
+          .then((status) {
+        if (status.isDenied) {
+          return Permission.notification.request();
+        } else {
+          return status;
+        }
+      });
+    }
   }
 
   @override
