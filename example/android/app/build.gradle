@@ -37,7 +37,7 @@ android {
     defaultConfig {
         applicationId "com.catapush.flutter.sdk.example"
         minSdkVersion 21
-        targetSdkVersion 31
+        targetSdkVersion 33
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
