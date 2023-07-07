@@ -17,7 +17,7 @@ With Flutter:
 This will add a line like this to your package's pubspec.yaml (and run an implicit flutter pub get):
 ```
 dependencies:
-  catapush_flutter_sdk: ^1.3.0
+  catapush_flutter_sdk: ^1.6.0
 ```
 
 Now, in your Dart code, you can use:
