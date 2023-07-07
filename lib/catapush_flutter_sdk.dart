@@ -35,6 +35,9 @@ class Catapush {
     _channel.setMethodCallHandler(_handleMethod);
   }
 
+  /// Initializes the native Catapush SDK.<br />
+  /// Wait for the Future to complete before invoking any other method of this
+  /// plugin.
   Future<bool> init({iOSSettings? ios, AndroidSettings? android}) {
     return _channel.invokeMethod<Map<Object?, Object?>>('Catapush#init', {
       'ios': ios?.mapRepresentation(),
@@ -45,6 +48,10 @@ class Catapush {
     });
   }
 
+  /// Sets the user credentials.<br />
+  /// Provide the identifier and password that you have created with the
+  /// Catapush dashboard or with the Catapush APIs.<br />
+  /// You have to invoke this method at least once before starting the SDK.
   Future<bool> setUser(String identifier, String password) {
     return _channel.invokeMethod<Map<Object?, Object?>>('Catapush#setUser', {
       'identifier': identifier,
@@ -55,6 +62,7 @@ class Catapush {
     });
   }
 
+  /// Starts the Catapush native SDK.
   Future<bool> start() {
     return _channel.invokeMethod<Map<Object?, Object?>>('Catapush#start')
         .then((response) {
@@ -62,6 +70,7 @@ class Catapush {
     });
   }
 
+  /// Stops the Catapush native SDK.
   Future<bool> stop() {
     return _channel.invokeMethod<Map<Object?, Object?>>('Catapush#stop')
         .then((response) {
@@ -69,6 +78,7 @@ class Catapush {
     });
   }
 
+  /// Sends a message to the Catapush backend for delivery.
   Future<bool> sendMessage(CatapushSendMessage message) {
     return _channel.invokeMethod<Map<Object?, Object?>>('Catapush#sendMessage', {
       'message': message.mapRepresentation(),
@@ -78,6 +88,7 @@ class Catapush {
     });
   }
 
+  /// Lists all messages received by the currently logged user.
   Future<List<CatapushMessage>> allMessages() {
     return _channel.invokeMethod<Map<Object?, Object?>>('Catapush#getAllMessages')
         .then((response) {
@@ -95,6 +106,7 @@ class Catapush {
     });
   }
 
+  /// Enables or disables the SDK logging.
   Future<bool> enableLog(bool enabled) {
     return _channel.invokeMethod<Map<Object?, Object?>>('Catapush#enableLog', {
       'enableLog': enabled,
@@ -104,6 +116,7 @@ class Catapush {
     });
   }
 
+  /// Disconnects the current user.
   Future<bool> logout() {
     return _channel.invokeMethod<Map<Object?, Object?>>('Catapush#logout')
         .then((response) {
@@ -111,6 +124,7 @@ class Catapush {
     });
   }
 
+  /// Confirms that a message has been read by the user.
   Future<bool> sendMessageReadNotificationWithId(String id) {
     return _channel.invokeMethod<Map<Object?, Object?>>('Catapush#sendMessageReadNotificationWithId', {
       'id': id,
@@ -120,6 +134,8 @@ class Catapush {
     });
   }
 
+  /// Sets the delegate that will be informed of all messaging events of the
+  /// native SDK.
   void setCatapushMessageDelegate(CatapushMessageDelegate delegate) {
     _catapushMessageDelegate = delegate;
 
@@ -136,6 +152,8 @@ class Catapush {
         .listen(_catapushMessageDelegate?.catapushNotificationTapped);
   }
 
+  /// Sets the delegate that will be informed of all state change events of the
+  /// native SDK.
   void setCatapushStateDelegate(CatapushStateDelegate delegate) {
     _catapushStateDelegate = delegate;
 
@@ -148,6 +166,7 @@ class Catapush {
         .listen(_catapushStateDelegate?.catapushHandleError);
   }
 
+  /// Obtains the file attached to the message.
   Future<CatapushFile> getAttachmentUrlForMessage(CatapushMessage message) async {
     if (!message.hasAttachment) {
       return Future.error('Message has no attachment');
