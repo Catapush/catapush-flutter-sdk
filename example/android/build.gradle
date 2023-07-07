@@ -1,6 +1,5 @@
 buildscript {
     ext.kotlin_version = '1.7.21'
-    ext.catapush_version = '12.1.1'
 
     repositories {
         google()
@@ -30,6 +29,6 @@ subprojects {
     project.evaluationDependsOn(':app')
 }
 
-task clean(type: Delete) {
+tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
