@@ -1,4 +1,5 @@
 library catapush_flutter_sdk;
+
 import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
@@ -11,17 +12,18 @@ import 'package:rxdart/subjects.dart';
 export 'catapush_flutter_models.dart';
 export 'catapush_flutter_widgets.dart';
 
-
 class Catapush {
   static Catapush shared = Catapush();
 
   final MethodChannel _channel = const MethodChannel('Catapush');
 
-  final _receivedMessageQueueSubject = ReplaySubject<CatapushMessage>(maxSize: 100);
+  final _receivedMessageQueueSubject =
+      ReplaySubject<CatapushMessage>(maxSize: 100);
   StreamSubscription? _receivedMessageQueueSubscription;
   final _sentMessageQueueSubject = ReplaySubject<CatapushMessage>(maxSize: 100);
   StreamSubscription? _sentMessageQueueSubscription;
-  final _notificationTappedQueueSubject = ReplaySubject<CatapushMessage>(maxSize: 100);
+  final _notificationTappedQueueSubject =
+      ReplaySubject<CatapushMessage>(maxSize: 100);
   StreamSubscription? _notificationTappedQueueSubscription;
   final _stateSubject = BehaviorSubject<CatapushState>();
   StreamSubscription? _stateSubscription;
@@ -42,8 +44,7 @@ class Catapush {
     return _channel.invokeMethod<Map<Object?, Object?>>('Catapush#init', {
       'ios': ios?.mapRepresentation(),
       'android': android?.mapRepresentation(),
-    })
-        .then((response) {
+    }).then((response) {
       return response!['result']! as bool;
     });
   }
@@ -56,15 +57,15 @@ class Catapush {
     return _channel.invokeMethod<Map<Object?, Object?>>('Catapush#setUser', {
       'identifier': identifier,
       'password': password,
-    })
-        .then((response) {
+    }).then((response) {
       return response!['result']! as bool;
     });
   }
 
   /// Starts the Catapush native SDK.
   Future<bool> start() {
-    return _channel.invokeMethod<Map<Object?, Object?>>('Catapush#start')
+    return _channel
+        .invokeMethod<Map<Object?, Object?>>('Catapush#start')
         .then((response) {
       return response!['result']! as bool;
     });
@@ -72,7 +73,8 @@ class Catapush {
 
   /// Stops the Catapush native SDK.
   Future<bool> stop() {
-    return _channel.invokeMethod<Map<Object?, Object?>>('Catapush#stop')
+    return _channel
+        .invokeMethod<Map<Object?, Object?>>('Catapush#stop')
         .then((response) {
       return response!['result']! as bool;
     });
@@ -80,26 +82,30 @@ class Catapush {
 
   /// Sends a message to the Catapush backend for delivery.
   Future<bool> sendMessage(CatapushSendMessage message) {
-    return _channel.invokeMethod<Map<Object?, Object?>>('Catapush#sendMessage', {
+    return _channel
+        .invokeMethod<Map<Object?, Object?>>('Catapush#sendMessage', {
       'message': message.mapRepresentation(),
-    })
-        .then((response) {
+    }).then((response) {
       return response!['result']! as bool;
     });
   }
 
   /// Lists all messages received by the currently logged user.
   Future<List<CatapushMessage>> allMessages() {
-    return _channel.invokeMethod<Map<Object?, Object?>>('Catapush#getAllMessages')
+    return _channel
+        .invokeMethod<Map<Object?, Object?>>('Catapush#getAllMessages')
         .then((response) {
       final messages = (response!['result']! as List<Object?>)
-          .map((e) => CatapushMessage.fromMap(LinkedHashMap<String, dynamic>.from(e! as Map)))
+          .map((e) => CatapushMessage.fromMap(
+              LinkedHashMap<String, dynamic>.from(e! as Map)))
           .toList(growable: false);
 
       if (messages.isEmpty) {
-        debugPrint('Catapush Flutter SDK - Catapush#getAllMessages no messages');
+        debugPrint(
+            'Catapush Flutter SDK - Catapush#getAllMessages no messages');
       } else {
-        debugPrint('Catapush Flutter SDK - Catapush#getAllMessages most recent message: ${messages.first}');
+        debugPrint(
+            'Catapush Flutter SDK - Catapush#getAllMessages most recent message: ${messages.first}');
       }
 
       return messages;
@@ -110,15 +116,15 @@ class Catapush {
   Future<bool> enableLog(bool enabled) {
     return _channel.invokeMethod<Map<Object?, Object?>>('Catapush#enableLog', {
       'enableLog': enabled,
-    })
-        .then((response) {
+    }).then((response) {
       return response!['result']! as bool;
     });
   }
 
   /// Disconnects the current user.
   Future<bool> logout() {
-    return _channel.invokeMethod<Map<Object?, Object?>>('Catapush#logout')
+    return _channel
+        .invokeMethod<Map<Object?, Object?>>('Catapush#logout')
         .then((response) {
       return response!['result']! as bool;
     });
@@ -126,10 +132,10 @@ class Catapush {
 
   /// Confirms that a message has been read by the user.
   Future<bool> sendMessageReadNotificationWithId(String id) {
-    return _channel.invokeMethod<Map<Object?, Object?>>('Catapush#sendMessageReadNotificationWithId', {
+    return _channel.invokeMethod<Map<Object?, Object?>>(
+        'Catapush#sendMessageReadNotificationWithId', {
       'id': id,
-    })
-        .then((response) {
+    }).then((response) {
       return response!['result']! as bool;
     });
   }
@@ -158,23 +164,24 @@ class Catapush {
     _catapushStateDelegate = delegate;
 
     _stateSubscription?.cancel();
-    _stateSubscription = _stateSubject
-        .listen(_catapushStateDelegate?.catapushStateChanged);
+    _stateSubscription =
+        _stateSubject.listen(_catapushStateDelegate?.catapushStateChanged);
 
     _errorQueueSubscription?.cancel();
-    _errorQueueSubscription = _errorQueueSubject
-        .listen(_catapushStateDelegate?.catapushHandleError);
+    _errorQueueSubscription =
+        _errorQueueSubject.listen(_catapushStateDelegate?.catapushHandleError);
   }
 
   /// Obtains the file attached to the message.
-  Future<CatapushFile> getAttachmentUrlForMessage(CatapushMessage message) async {
+  Future<CatapushFile> getAttachmentUrlForMessage(
+      CatapushMessage message) async {
     if (!message.hasAttachment) {
       return Future.error('Message has no attachment');
     }
-    return _channel.invokeMethod<Map<Object?, Object?>>('Catapush#getAttachmentUrlForMessage', {
+    return _channel.invokeMethod<Map<Object?, Object?>>(
+        'Catapush#getAttachmentUrlForMessage', {
       'id': message.id,
-    })
-        .then((response) {
+    }).then((response) {
       if ((response?['url'] as String?)?.isNotEmpty ?? false) {
         return CatapushFile(
           response!['mimeType'] as String? ?? '',
@@ -189,8 +196,7 @@ class Catapush {
   /// Resume notifications until next Catapush start or until [Catapush.pauseNotifications()]
   Future<void> resumeNotifications() async {
     if (Platform.isAndroid) {
-      return _channel
-          .invokeMethod('Catapush#resumeNotifications', null);
+      return _channel.invokeMethod('Catapush#resumeNotifications', null);
     }
   }
 
@@ -198,8 +204,7 @@ class Catapush {
   /// Pause notifications until next Catapush start or until [Catapush.resumeNotifications()]
   Future<void> pauseNotifications() async {
     if (Platform.isAndroid) {
-      return _channel
-          .invokeMethod('Catapush#pauseNotifications', null);
+      return _channel.invokeMethod('Catapush#pauseNotifications', null);
     }
   }
 
@@ -207,8 +212,7 @@ class Catapush {
   /// Enable notifications, this status will be persisted across Catapush starts
   Future<void> enableNotifications() async {
     if (Platform.isAndroid) {
-      return _channel
-          .invokeMethod('Catapush#enableNotifications', null);
+      return _channel.invokeMethod('Catapush#enableNotifications', null);
     }
   }
 
@@ -216,8 +220,7 @@ class Catapush {
   /// Disable notifications, this status will be persisted across Catapush starts
   Future<void> disableNotifications() async {
     if (Platform.isAndroid) {
-      return _channel
-          .invokeMethod('Catapush#disableNotifications', null);
+      return _channel.invokeMethod('Catapush#disableNotifications', null);
     }
   }
 
@@ -225,30 +228,26 @@ class Catapush {
   Future<void> _handleMethod(MethodCall call) async {
     if (call.method == 'Catapush#catapushMessageReceived') {
       final args = call.arguments as Map<Object?, Object?>;
-      final message = CatapushMessage
-          .fromMap((args['message']! as Map<dynamic, dynamic>)
-          .cast<String, dynamic>());
+      final message = CatapushMessage.fromMap(
+          (args['message']! as Map<dynamic, dynamic>).cast<String, dynamic>());
       if (_catapushMessageDelegate != null) {
         _catapushMessageDelegate?.catapushMessageReceived(message);
       } else {
         _receivedMessageQueueSubject.add(message);
       }
-
     } else if (call.method == 'Catapush#catapushMessageSent') {
       final args = call.arguments as Map<Object?, Object?>;
-      final message = CatapushMessage
-          .fromMap((args['message']! as Map<dynamic, dynamic>)
-          .cast<String, dynamic>());
+      final message = CatapushMessage.fromMap(
+          (args['message']! as Map<dynamic, dynamic>).cast<String, dynamic>());
       if (_catapushMessageDelegate != null) {
         _catapushMessageDelegate?.catapushMessageSent(message);
       } else {
         _sentMessageQueueSubject.add(message);
       }
-
     } else if (call.method == 'Catapush#catapushStateChanged') {
       CatapushState catapushState;
       final args = call.arguments as Map<Object?, Object?>;
-      switch((args['status']! as String).toUpperCase()){
+      switch ((args['status']! as String).toUpperCase()) {
         case 'DISCONNECTED':
           catapushState = CatapushState.DISCONNECTED;
           break;
@@ -260,18 +259,15 @@ class Catapush {
           break;
       }
       _stateSubject.add(catapushState);
-
     } else if (call.method == 'Catapush#catapushNotificationTapped') {
       final args = call.arguments as Map<Object?, Object?>;
-      final message = CatapushMessage
-          .fromMap((args['message']! as Map<dynamic, dynamic>)
-          .cast<String, dynamic>());
+      final message = CatapushMessage.fromMap(
+          (args['message']! as Map<dynamic, dynamic>).cast<String, dynamic>());
       if (_catapushMessageDelegate != null) {
         _catapushMessageDelegate?.catapushNotificationTapped(message);
       } else {
         _notificationTappedQueueSubject.add(message);
       }
-
     } else if (call.method == 'Catapush#catapushHandleError') {
       final args = call.arguments as Map<Object?, Object?>;
       final error = CatapushError(
@@ -285,5 +281,4 @@ class Catapush {
       }
     }
   }
-
 }

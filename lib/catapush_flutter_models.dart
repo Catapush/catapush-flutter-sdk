@@ -19,11 +19,7 @@ class AndroidSettings {
   }
 }
 
-enum CatapushState {
-  DISCONNECTED,
-  CONNECTING,
-  CONNECTED
-}
+enum CatapushState { DISCONNECTED, CONNECTING, CONNECTED }
 
 class CatapushError {
   String event;
@@ -48,16 +44,13 @@ class CatapushFile {
   //Future<ByteData> previewData;
 
   CatapushFile(
-      this.mimeType,
-      this.url,
-      //this.previewData
-      );
+    this.mimeType,
+    this.url,
+    //this.previewData
+  );
 
   Map<String, dynamic> mapRepresentation() {
-    return <String, dynamic>{
-      'mimeType': mimeType,
-      'url': url
-    };
+    return <String, dynamic>{'mimeType': mimeType, 'url': url};
   }
 
   @override
@@ -85,9 +78,11 @@ class CatapushMessage {
   bool hasAttachment;
   String? channel;
   String? replyToId; // originalMessageId
-  Map<String, dynamic>? optionalData;  //verificare se le API limitano a 1 livello chiave valore String:String
+  Map<String, dynamic>?
+      optionalData; //verificare se le API limitano a 1 livello chiave valore String:String
   DateTime? receivedTime; // no iOS
-  DateTime? readTime; // iOS lo gestisce in una tabella diversa e quindi valutare la join
+  DateTime?
+      readTime; // iOS lo gestisce in una tabella diversa e quindi valutare la join
   DateTime? sentTime;
   CatapushMessageState state;
 
@@ -108,17 +103,21 @@ class CatapushMessage {
   });
 
   factory CatapushMessage.fromMap(Map<String, dynamic> json) => CatapushMessage(
-    id: json['messageId'] as String,
-    sender: json['sender'] as String,
-    body: json['body'] as String?,
-    channel: json['channel'] as String?,
-    optionalData: json['optionalData'] != null ? (json['optionalData'] as Map<dynamic, dynamic>).cast<String,dynamic>() : null,
-    state: CatapushMessageState.values.firstWhere((e) {
-      return e.toString() == 'CatapushMessageState.${json['state'] as String}';
-    }),
-    sentTime: DateTime.tryParse(json['sentTime'] as String? ?? ''),
-    hasAttachment: json['hasAttachment'] as bool,
-  );
+        id: json['messageId'] as String,
+        sender: json['sender'] as String,
+        body: json['body'] as String?,
+        channel: json['channel'] as String?,
+        optionalData: json['optionalData'] != null
+            ? (json['optionalData'] as Map<dynamic, dynamic>)
+                .cast<String, dynamic>()
+            : null,
+        state: CatapushMessageState.values.firstWhere((e) {
+          return e.toString() ==
+              'CatapushMessageState.${json['state'] as String}';
+        }),
+        sentTime: DateTime.tryParse(json['sentTime'] as String? ?? ''),
+        hasAttachment: json['hasAttachment'] as bool,
+      );
 
   @override
   String toString() {
