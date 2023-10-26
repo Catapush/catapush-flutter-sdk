@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class CatapushMessageWidget extends StatelessWidget {
-
   static const oneDay = Duration(hours: 24);
   static final formatHour = DateFormat('HH:mm');
   static final formatDay = DateFormat('dd MMM');
@@ -29,8 +28,8 @@ class CatapushMessageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (message.state == CatapushMessageState.SENT
-        || message.state == CatapushMessageState.SENT_CONFIRMED) {
+    if (message.state == CatapushMessageState.SENT ||
+        message.state == CatapushMessageState.SENT_CONFIRMED) {
       return _buildSentMessage(context);
     } else {
       return _buildReceivedMessage(context);
@@ -39,7 +38,10 @@ class CatapushMessageWidget extends StatelessWidget {
 
   Widget _buildReceivedMessage(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0,),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16.0,
+        vertical: 4.0,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
@@ -81,7 +83,10 @@ class CatapushMessageWidget extends StatelessWidget {
 
   Widget _buildSentMessage(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0,),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16.0,
+        vertical: 4.0,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
@@ -128,7 +133,8 @@ class CatapushMessageWidget extends StatelessWidget {
       builder: (BuildContext context, AsyncSnapshot<CatapushFile> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(textTheme.bodySmall!.color!),
+            valueColor:
+                AlwaysStoppedAnimation<Color>(textTheme.bodySmall!.color!),
           );
         } else if (snapshot.hasError) {
           return Text(
@@ -159,14 +165,13 @@ class CatapushMessageWidget extends StatelessWidget {
   }
 
   String _confirmedCheck() {
-    if (message.state == CatapushMessageState.RECEIVED_CONFIRMED
-        || message.state == CatapushMessageState.OPENED
-        || message.state == CatapushMessageState.OPENED_CONFIRMED
-        || message.state == CatapushMessageState.SENT_CONFIRMED) {
+    if (message.state == CatapushMessageState.RECEIVED_CONFIRMED ||
+        message.state == CatapushMessageState.OPENED ||
+        message.state == CatapushMessageState.OPENED_CONFIRMED ||
+        message.state == CatapushMessageState.SENT_CONFIRMED) {
       return ' ✓';
     } else {
       return '';
     }
   }
-
 }
