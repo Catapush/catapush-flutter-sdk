@@ -34,7 +34,7 @@ end
 
 target 'Service' do
   use_frameworks!
-  pod 'catapush-ios-sdk-pod', '2.2.2'
+  pod 'catapush-ios-sdk-pod', '2.2.3'
 end
 
 post_install do |installer|
