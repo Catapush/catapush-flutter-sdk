@@ -17,14 +17,14 @@ class CatapushMessageWidget extends StatelessWidget {
   final Color backgroundInverseColor;
 
   const CatapushMessageWidget({
-    Key? key,
+    super.key,
     required this.message,
     required this.screenWidth,
     required this.isLightTheme,
     required this.textTheme,
     required this.backgroundColor,
     required this.backgroundInverseColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
