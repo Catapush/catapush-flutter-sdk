@@ -69,10 +69,10 @@ class CSDelegate extends CatapushStateDelegate{
 
 class App extends StatefulWidget {
   const App({
-    Key? key,
+    super.key,
     required this.authenticationRepository,
     required this.userRepository,
-  }) : super(key: key);
+  });
 
   final AuthenticationRepository authenticationRepository;
   final UserRepository userRepository;
@@ -109,7 +109,7 @@ class AppState extends State<App> {
 
 
 class AppView extends StatefulWidget{
-  const AppView({Key? key}) : super(key: key);
+  const AppView({super.key});
 
   @override
   AppViewState createState() => AppViewState();

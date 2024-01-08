@@ -12,7 +12,7 @@ import 'package:mime/mime.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class HomeScreen extends StatefulWidget{
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   static Route route() {
     return MaterialPageRoute<void>(builder: (_) => const HomeScreen());

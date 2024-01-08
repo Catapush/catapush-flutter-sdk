@@ -1,6 +1,6 @@
 name: catapush_flutter_sdk
 description: Official Catapush plugin for Flutter, supports Android and iOS platforms
-version: 1.6.2
+version: 1.6.3
 homepage: https://www.catapush.com/
 
 environment:
@@ -15,7 +15,7 @@ dependencies:
   rxdart: ^0.27.7
 
 dev_dependencies:
-  flutter_lints: ^2.0.2
+  flutter_lints: ^3.0.1
   flutter_test:
     sdk: flutter
 

@@ -1,3 +1,8 @@
+## 1.6.3
+
+* Update Catapush iOS SDK to 2.2.3
+* Update Catapush Android SDK to 13.0.9
+
 ## 1.6.2
 
 * Update Catapush Android SDK to 13.0.5
