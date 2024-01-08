@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class LoginScreen extends StatefulWidget{
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   static Route route() {
     return MaterialPageRoute<void>(builder: (_) => const LoginScreen());
