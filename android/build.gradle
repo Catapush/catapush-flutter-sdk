@@ -5,7 +5,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 33
+    compileSdkVersion 34
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
@@ -18,11 +18,11 @@ android {
 repositories {
     google()
     mavenCentral()
-    maven { url "https://www.jitpack.io" }
+    maven { url "https://s3.eu-west-1.amazonaws.com/m2repository.catapush.com/" }
 }
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    api "com.catapush.catapush-android-sdk:core:13.0.9"
-    api "com.catapush.catapush-android-sdk:gms:13.0.9"
+    api "com.catapush.catapush-android-sdk:core:14.0.0"
+    api "com.catapush.catapush-android-sdk:gms:14.0.0"
 }
