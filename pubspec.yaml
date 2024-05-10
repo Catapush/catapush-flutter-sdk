@@ -10,12 +10,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  mime: ^1.0.4
-  intl: ^0.18.0
+  mime: ^1.0.5
+  intl: ^0.18.1
   rxdart: ^0.27.7
 
 dev_dependencies:
-  flutter_lints: ^3.0.1
+  flutter_lints: ^3.0.2
   flutter_test:
     sdk: flutter
 
