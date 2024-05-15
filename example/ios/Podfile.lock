@@ -1,7 +1,7 @@
 PODS:
-  - catapush-ios-sdk-pod (2.2.3)
+  - catapush-ios-sdk-pod (2.2.4)
   - catapush_flutter_sdk (0.0.1):
-    - catapush-ios-sdk-pod (= 2.2.3)
+    - catapush-ios-sdk-pod (= 2.2.4)
     - Flutter
   - Flutter (1.0.0)
   - image_picker_ios (0.0.1):
@@ -12,7 +12,7 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
-  - catapush-ios-sdk-pod (= 2.2.3)
+  - catapush-ios-sdk-pod (= 2.2.4)
   - catapush_flutter_sdk (from `.symlinks/plugins/catapush_flutter_sdk/ios`)
   - Flutter (from `Flutter`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
