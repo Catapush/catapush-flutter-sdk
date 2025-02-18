@@ -25,12 +25,12 @@ if (flutterVersionName == null) {
 
 android {
     namespace 'com.catapush.flutter.sdk.example'
-    compileSdkVersion 34
+    compileSdkVersion 35
 
     defaultConfig {
         applicationId "com.catapush.flutter.sdk.example"
         minSdkVersion 21
-        targetSdkVersion 34
+        targetSdkVersion 35
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }

@@ -6,7 +6,7 @@ apply plugin: 'kotlin-android'
 
 android {
     namespace "com.catapush.flutter.sdk"
-    compileSdkVersion 34
+    compileSdkVersion 35
 
     defaultConfig {
         minSdkVersion 21
@@ -33,6 +33,6 @@ repositories {
 }
 
 dependencies {
-    api "com.catapush.catapush-android-sdk:core:14.0.0"
-    api "com.catapush.catapush-android-sdk:gms:14.0.0"
+    api "com.catapush.catapush-android-sdk:core:15.0.0"
+    api "com.catapush.catapush-android-sdk:gms:15.0.0"
 }

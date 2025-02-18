@@ -1,3 +1,7 @@
+## 1.8.0
+
+* Update Catapush Android SDK to 15.0.0, requires Android target SDK version 35
+
 ## 1.7.0
 
 * Update Catapush iOS SDK to 2.2.4
