@@ -49,15 +49,19 @@ final accent = MaterialColor(
   },
 );
 
-final lightColorScheme = ColorScheme.light(
+final lightColorScheme = ColorScheme.fromSeed(
+  seedColor: primary,
   primary: primary,
-  secondary: accent.shade500,
+  secondary: accent,
   onSecondary: Colors.white,
+  brightness: Brightness.light,
 );
-final darkColorScheme = ColorScheme.dark(
+final darkColorScheme = ColorScheme.fromSeed(
+  seedColor: primary,
   primary: primary,
-  secondary: accent.shade500,
+  secondary: accent,
   onSecondary: Colors.white,
+  brightness: Brightness.dark,
 );
 
 const lightTextTheme = Typography.blackMountainView;
@@ -66,8 +70,10 @@ const darkTextTheme = Typography.whiteMountainView;
 final lightThemeData = ThemeData.from(
   colorScheme: lightColorScheme,
   textTheme: lightTextTheme,
+  useMaterial3: false,
 );
 final darkThemeData = ThemeData.from(
   colorScheme: darkColorScheme,
   textTheme: darkTextTheme,
+  useMaterial3: false,
 );
