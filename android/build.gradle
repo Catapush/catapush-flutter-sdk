@@ -5,10 +5,10 @@ apply plugin: 'com.android.library'
 
 android {
     namespace "com.catapush.flutter.sdk"
-    compileSdkVersion 35
+    compileSdkVersion 36
 
     defaultConfig {
-        minSdkVersion 21
+        minSdkVersion 23
     }
 
     compileOptions {
@@ -34,6 +34,6 @@ repositories {
 }
 
 dependencies {
-    api "com.catapush.catapush-android-sdk:core:15.0.0"
-    api "com.catapush.catapush-android-sdk:gms:15.0.0"
+    api "com.catapush.catapush-android-sdk:core:16.0.0"
+    api "com.catapush.catapush-android-sdk:gms:16.0.0"
 }

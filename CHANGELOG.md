@@ -1,3 +1,8 @@
+## 1.9.0
+
+* Updates minimum supported SDK version to Flutter 3.44 / Dart 3.12.
+* Migrates Android plugin to built-in Kotlin (removes explicit `kotlin-android` plugin dependency).
+
 ## 1.8.0
 
 * Update Catapush Android SDK to 15.0.0, requires Android target SDK version 35
