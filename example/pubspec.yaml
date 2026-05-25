@@ -18,7 +18,7 @@ dependencies:
   flutter_bloc: ^9.0.0
   shared_preferences: ^2.5.2
   mime: ^2.0.0
-  image_picker: ^1.1.2
+  image_picker: ^1.2.1
   permission_handler: ^11.3.1
 
 dev_dependencies:
