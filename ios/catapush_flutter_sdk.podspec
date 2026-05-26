@@ -22,6 +22,6 @@ DESC
   s.frameworks = 'SystemConfiguration','MobileCoreServices'
 
   s.source_files = 'Classes/**/*'
-  s.dependency 'catapush-ios-sdk-pod', '2.2.4'
+  s.dependency 'catapush-ios-sdk-pod', '2.2.5'
   s.static_framework = true
 end
