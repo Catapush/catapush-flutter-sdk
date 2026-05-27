@@ -2,6 +2,10 @@
 
 * Updates minimum supported SDK version to Flutter 3.44 / Dart 3.12.
 * Migrates Android plugin to built-in Kotlin (removes explicit `kotlin-android` plugin dependency).
+* Updates Catapush Android SDK to 16.0.0, requires Android compileSdk 36 and minSdk 23.
+* Updates Catapush iOS SDK to 2.2.5.
+* Raises minimum iOS deployment target from 12.0 to 13.0.
+* Applies Flutter 3.44 iOS migration (UIScene lifecycle, Swift Package Manager plugin package).
 
 ## 1.8.0
 
