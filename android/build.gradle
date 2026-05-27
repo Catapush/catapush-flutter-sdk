@@ -2,14 +2,13 @@ group 'com.catapush.flutter.sdk'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
 
 android {
     namespace "com.catapush.flutter.sdk"
-    compileSdkVersion 35
+    compileSdkVersion 36
 
     defaultConfig {
-        minSdkVersion 21
+        minSdkVersion 23
     }
 
     compileOptions {
@@ -17,12 +16,14 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = '17'
-    }
-
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
 
@@ -33,6 +34,6 @@ repositories {
 }
 
 dependencies {
-    api "com.catapush.catapush-android-sdk:core:15.0.0"
-    api "com.catapush.catapush-android-sdk:gms:15.0.0"
+    api "com.catapush.catapush-android-sdk:core:16.0.0"
+    api "com.catapush.catapush-android-sdk:gms:16.0.0"
 }

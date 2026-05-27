@@ -263,11 +263,12 @@ public class SwiftCatapushFlutterSdkPlugin: NSObject, FlutterPlugin {
         let LONG_DELAY =  300
         let SHORT_DELAY = 30
         
-        func catapushDidConnectSuccessfully(_ catapush: Catapush!) {
-            
+        func catapushDidConnectSuccessfully(_ catapush: Catapush) {
+
         }
-        
-        func catapush(_ catapush: Catapush!, didFailOperation operationName: String!, withError error: Error!) {
+
+        func catapush(_ catapush: Catapush, didFailOperation operationName: String?, withError error: Error?) {
+            guard let error = error else { return }
             let domain = (error as NSError).domain
             let code = (error as NSError).code
             if domain == CATAPUSH_ERROR_DOMAIN {
@@ -507,7 +508,8 @@ public class SwiftCatapushFlutterSdkPlugin: NSObject, FlutterPlugin {
             self.channel = channel
         }
         
-        func libraryDidReceive(_ messageIP: MessageIP!) {
+        func libraryDidReceive(_ messageIP: MessageIP?) {
+            guard let messageIP = messageIP else { return }
             channel.invokeMethod("Catapush#catapushMessageReceived", arguments: ["message" : formatMessageID(message: messageIP)])
         }
     }

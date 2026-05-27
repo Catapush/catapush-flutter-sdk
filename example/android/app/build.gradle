@@ -1,6 +1,5 @@
 plugins {
     id "com.android.application"
-    id "kotlin-android"
     id "com.google.gms.google-services"
     id "dev.flutter.flutter-gradle-plugin"
 }
@@ -25,12 +24,12 @@ if (flutterVersionName == null) {
 
 android {
     namespace 'com.catapush.flutter.sdk.example'
-    compileSdkVersion 35
+    compileSdkVersion 36
 
     defaultConfig {
         applicationId "com.catapush.flutter.sdk.example"
-        minSdkVersion 21
-        targetSdkVersion 35
+        minSdkVersion Math.max(flutter.minSdkVersion, 23)
+        targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
@@ -38,10 +37,6 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = '17'
     }
 
     sourceSets {
@@ -60,6 +55,12 @@ android {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
 
